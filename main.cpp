@@ -1,11 +1,54 @@
 ﻿#include <cmath>
 #include "tgaimage.h"
+#include <vector>
+
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <iostream>
 
 constexpr TGAColor white   = {255, 255, 255, 255}; // attention, BGRA order
 constexpr TGAColor green   = {  0, 255,   0, 255};
 constexpr TGAColor red     = {  0,   0, 255, 255};
 constexpr TGAColor blue    = {255, 128,  64, 255};
 constexpr TGAColor yellow  = {  0, 200, 255, 255};
+
+namespace Canvas {
+    constexpr int width{ 64 };
+    constexpr int height{ 64 };
+    constexpr double midWidth{ (width - 1) / 2 };
+    constexpr double midHeight{ (width - 1) / 2 };
+}
+
+class Vertex
+{
+    int x_{};
+    int y_{};
+    double z_{};
+
+public:
+    Vertex(int x, int y, double z)
+        : x_{ x }
+        , y_{ y }
+        , z_{ z }
+    { }
+
+    Vertex() = default;
+};
+
+class Face
+{
+    Vertex v1_{};
+    Vertex v2_{};
+    Vertex v3_{};
+
+public:
+    Face(Vertex v1, Vertex v2, Vertex v3)
+        : v1_{ v1 }
+        , v2_{ v2 }
+        , v3_{ v3 }
+    { }
+};
 
 void line(int ax, int ay, int bx, int by, TGAImage &framebuffer, TGAColor color) {
     // check for steep vertical
@@ -21,7 +64,6 @@ void line(int ax, int ay, int bx, int by, TGAImage &framebuffer, TGAColor color)
         std::swap(ay, by);
     }
 
-    //float y{ static_cast<float>(ay) };
     int y{ay};
     int ierror{ };
     for (int x = ax; x <= bx; ++x) {
@@ -33,30 +75,43 @@ void line(int ax, int ay, int bx, int by, TGAImage &framebuffer, TGAColor color)
         }
 
         ierror += 2*(std::abs(by-ay));
-        if (ierror > (bx-ax)) { 
-            y += by > ay ? 1 : -1;
-            ierror -= 2 * (bx - ax);
-        }
+        y += by > ay ? 1 : -1 * (ierror > (bx-ax));
+        ierror -= 2 * (bx - ax) * (ierror > (bx - ax));
     }
 }
 
+void convertModelVertexToWorld(Vertex& vertex) {
+    using namespace Canvas;
+    vertex.x_ = std::round(vertex.x_ * width + midWidth);
+    vertex.y_ = std::round(vertex.y_ * height + midHeight);
+}
+
 int main(int argc, char** argv) {
-    constexpr int width  = 64;
-    constexpr int height = 64;
-    TGAImage framebuffer(width, height, TGAImage::RGB);
+    TGAImage framebuffer(Canvas::width, Canvas::height, TGAImage::RGB);
 
-    int ax =  20, ay =  3;
-    int bx = 12, by = 37;
-    int cx = 62, cy = 53;
+    std::ifstream objFile("obj/diablo3_pose/diablo3_pose.obj");
 
-    line(ax, ay, bx, by, framebuffer, blue);
-    line(cx, cy, bx, by, framebuffer, green);
-    line(cx, cy, ax, ay, framebuffer, yellow);
-    line(ax, ay, cx, cy, framebuffer, red);
+    std::vector<Vertex> vertices{};
+    
+    std::string curLine{};
+    std::istringstream stream{};
 
-    framebuffer.set(ax, ay, white);
-    framebuffer.set(bx, by, white);
-    framebuffer.set(cx, cy, white);
+    while (objFile.good()) {
+        std::getline(objFile, curLine);
+        stream.str(curLine);
+
+        std::string lineStart{ };
+        std::getline(stream, lineStart, ' ');
+
+        if (lineStart == "v") {
+
+        }
+        else if (lineStart == "f") {
+
+        }
+    }
+
+    objFile.close();
 
     framebuffer.write_tga_file("framebuffer.tga");
     return 0;

@@ -21,7 +21,6 @@ namespace Canvas {
 	constexpr int height{ 800 };
 	constexpr float midWidth{ (width - 1) / 2 };
 	constexpr float midHeight{ (height - 1) / 2 };
-	TGAImage framebuffer(width, height, TGAImage::RGB);
 } // namespace Canvas
 
 void line(int ax, int ay, int bx, int by, TGAImage& framebuffer,
@@ -101,13 +100,13 @@ public:
 		vertices_ = vertices;
 	}
 
-	void drawFaceBorders() {
+	void drawFaceBorders(TGAImage& framebuffer) {
 		line(vertices_[0].x(), vertices_[0].y(), vertices_[1].x(), vertices_[1].y(),
-			Canvas::framebuffer, red);
+			framebuffer, red);
 		line(vertices_[0].x(), vertices_[0].y(), vertices_[2].x(), vertices_[2].y(),
-			Canvas::framebuffer, red);
+			framebuffer, red);
 		line(vertices_[2].x(), vertices_[2].y(), vertices_[1].x(), vertices_[1].y(),
-			Canvas::framebuffer, red);
+			framebuffer, red);
 	}
 };
 
@@ -127,6 +126,9 @@ int main(int argc, char** argv) {
 
 	std::string curLine{};
 	std::string lineStart{};
+
+	TGAImage framebuffer(Canvas::width, Canvas::height, TGAImage::RGB);
+
 
 	int i{ 0 };
 	while (std::getline(objFile, curLine)) {
@@ -167,12 +169,12 @@ int main(int argc, char** argv) {
 			// assumes vertices already read
 			Face face({ vertices[vIndices[0]], vertices[vIndices[1]],
 						vertices[vIndices[2]] });
-			face.drawFaceBorders();
+			face.drawFaceBorders(framebuffer);
 		}
 	}
 
 	objFile.close();
 
-	Canvas::framebuffer.write_tga_file("framebuffer.tga");
+	framebuffer.write_tga_file("framebuffer.tga");
 	return 0;
 }

@@ -29,7 +29,7 @@ Model::Model(const std::string& filename) {
 			continue;
 		}
 
-		if (curLine.compare(0, 2, "v ")) {
+		if (curLine.compare(0, 2, "v ") == 0) {
 			// v 0.608654 -0.568839 -0.416318
 			double x{};
 			double y{};
@@ -39,7 +39,7 @@ Model::Model(const std::string& filename) {
 				Model::verts.push_back({ x, y, z });
 			}
 		}
-		else if (curLine.compare(0, 2, "f ")) {
+		else if (curLine.compare(0, 2, "f ") == 0) {
 			// f 1193/1240/1193 1180/1227/1180 1179/1226/1179
 			std::string vCluster{}; // "v/vt/vn"
 
@@ -56,6 +56,7 @@ Model::Model(const std::string& filename) {
 		}
 	}
 
+	std::cout << "read " << nverts() << " vertices and " << nfaces() << " faces\n";
 	objFile.close();
 }
 
@@ -88,7 +89,7 @@ void Model::line(int ax, int ay, int bx, int by, TGAImage& framebuffer,
 		}
 
 		ierror += 2 * dy;
-		if (ierror * 2 > dx) {
+		if (ierror > dx) {
 			y += ystep;
 			ierror -= 2 * dx;
 		}

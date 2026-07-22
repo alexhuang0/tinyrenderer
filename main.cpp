@@ -38,8 +38,12 @@ void line(int ax, int ay, int bx, int by, TGAImage& framebuffer,
 		std::swap(ay, by);
 	}
 
-	int y{ ay };
+	int dx{ bx - ax };
+	int dy{ std::abs(by - ay) };
 	int ierror{ 0 };
+	int ystep{ by > ay ? 1 : -1 };
+	int y{ ay };
+
 	for (int x = ax; x <= bx; ++x) {
 		if (steep) {
 			framebuffer.set(y, x, color);
@@ -48,9 +52,11 @@ void line(int ax, int ay, int bx, int by, TGAImage& framebuffer,
 			framebuffer.set(x, y, color);
 		}
 
-		ierror += 2 * (std::abs(by - ay));
-		y += (by > ay ? 1 : -1) * (ierror > (bx - ax));
-		ierror -= 2 * (bx - ax) * (ierror > (bx - ax));
+		ierror += 2 * dy;
+		if (ierror * 2 > dx) {
+			y += ystep;
+			ierror -= 2 * dx;
+		}
 	}
 }
 

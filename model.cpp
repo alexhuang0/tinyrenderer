@@ -29,12 +29,7 @@ Model::Model(const std::string& filename) {
 			continue;
 		}
 
-		std::istringstream stream{};
-		stream.str(curLine);
-
-		stream >> lineStart;
-
-		if (lineStart == "v") {
+		if (curLine.compare(0, 2, "v ")) {
 			// v 0.608654 -0.568839 -0.416318
 			double x{};
 			double y{};
@@ -44,7 +39,7 @@ Model::Model(const std::string& filename) {
 				Model::verts.push_back({ x, y, z });
 			}
 		}
-		else if (lineStart == "f") {
+		else if (curLine.compare(0, 2, "f ")) {
 			// f 1193/1240/1193 1180/1227/1180 1179/1226/1179
 			std::string vCluster{}; // "v/vt/vn"
 

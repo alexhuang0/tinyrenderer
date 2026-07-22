@@ -1,9 +1,12 @@
 ﻿#include "tgaimage.h"
+#include <array>
 #include <cmath>
 #include <vector>
 
+#include <charconv>
 #include <fstream>
 #include <iostream>
+#include <ranges>
 #include <sstream>
 #include <string>
 
@@ -18,64 +21,11 @@ constexpr int width{64};
 constexpr int height{64};
 constexpr double midWidth{(width - 1) / 2};
 constexpr double midHeight{(width - 1) / 2};
+TGAImage framebuffer(width, height, TGAImage::RGB);
 } // namespace Canvas
 
-class Vertex {
-  int x_{};
-  int y_{};
-  double z_{};
-
-public:
-  Vertex(int x, int y, double z)
-      : x_{x}
-      , y_{y}
-      , z_{z}
-  {
-  }
-
-  Vertex() = default;
-
-  int x() const { return x_; }
-
-  int y() const { return y_; }
-
-  double z() const { return z_; }
-
-  void x(int x) { x_ = x; }
-
-  void y(int y) { y_ = y; }
-
-  void z(double z) { z_ = z; }
-};
-
-class Face {
-  Vertex v1_{};
-  Vertex v2_{};
-  Vertex v3_{};
-
-public:
-  Face(Vertex v1, Vertex v2, Vertex v3)
-      : v1_{v1}
-      , v2_{v2}
-      , v3_{v3}
-  {
-  }
-
-  Vertex v1() const { return v1_; }
-
-  Vertex v2() const { return v2_; }
-
-  Vertex v3() const { return v3_; }
-
-  void v1(const Vertex &v1) { v1_ = v1; }
-
-  void v2(const Vertex &v2) { v2_ = v2; }
-
-  void v3(const Vertex &v3) { v3_ = v3; }
-};
-
-void line(int ax, int ay, int bx, int by, TGAImage &framebuffer, TGAColor color)
-{
+void line(int ax, int ay, int bx, int by, TGAImage &framebuffer,
+          TGAColor color) {
   // check for steep vertical
   bool steep{};
   if (std::abs(by - ay) > std::abs(bx - ax)) {
@@ -104,18 +54,61 @@ void line(int ax, int ay, int bx, int by, TGAImage &framebuffer, TGAColor color)
   }
 }
 
-void convertModelVertexToWorld(Vertex &vertex)
-{
-  using namespace Canvas;
-  vertex.x(std::round(vertex.x() * width + midWidth));
-  vertex.y(std::round(vertex.y() * height + midHeight));
+class Vertex {
+  int x_{};
+  int y_{};
+  double z_{};
+
+public:
+  Vertex(int x, int y, double z)
+      : x_{x}
+      , y_{y}
+      , z_{z} {}
+
+  Vertex() = default;
+
+  int x() const { return x_; }
+
+  int y() const { return y_; }
+
+  double z() const { return z_; }
+
+  void x(int x) { x_ = x; }
+
+  void y(int y) { y_ = y; }
+
+  void z(double z) { z_ = z; }
+};
+
+class Face {
+  std::vector<Vertex> vertices_{};
+
+public:
+  Face(const std::vector<Vertex> &vertices)
+      : vertices_{vertices} {}
+
+  const std::vector<Vertex> &getVertices() const { return vertices_; }
+
+  void setVertices(const std::vector<Vertex> &vertices) {
+    vertices_ = vertices;
+  }
+
+  void drawFaceBorders() {
+    line(vertices_[0].x(), vertices_[0].y(), vertices_[1].x(), vertices_[1].y(),
+         Canvas::framebuffer, red);
+    line(vertices_[0].x(), vertices_[0].y(), vertices_[2].x(), vertices_[2].y(),
+         Canvas::framebuffer, red);
+    line(vertices_[2].x(), vertices_[2].y(), vertices_[1].x(), vertices_[1].y(),
+         Canvas::framebuffer, red);
+  }
+};
+
+int convertModelCoordsToWorld(double model, int mid) {
+  return std::round(model * 2 * mid + mid);
 }
 
-int main(int argc, char **argv)
-{
-  TGAImage framebuffer(Canvas::width, Canvas::height, TGAImage::RGB);
-
-  std::ifstream objFile("obj/diablo3_pose/diablo3_pose.obj");
+int main(int argc, char **argv) {
+  std::ifstream objFile("obj/floor.obj");
 
   std::vector<Vertex> vertices{};
 
@@ -130,12 +123,38 @@ int main(int argc, char **argv)
     std::getline(stream, lineStart, ' ');
 
     if (lineStart == "v") {
+      // v 0.608654 -0.568839 -0.416318
+      double x{};
+      double y{};
+      double z{};
+
+      stream >> x >> y >> z;
+
+      vertices.push_back({convertModelCoordsToWorld(x, Canvas::midWidth),
+                          convertModelCoordsToWorld(y, Canvas::midHeight), z});
+
     } else if (lineStart == "f") {
+      // f 1193/1240/1193 1180/1227/1180 1179/1226/1179
+      std::string vCluster{}; // "v1/v2/v3"
+      while (std::getline(stream, vCluster)) {
+        std::istringstream vClusterStream(vCluster);
+        std::vector<int> vIndices{};
+        std::string token;
+
+        while (std::getline(vClusterStream, token)) {
+          vIndices.push_back(std::stoi(token) - 1);
+        }
+
+        // assumes vertices already read
+        Face face({vertices[vIndices[0]], vertices[vIndices[1]],
+                   vertices[vIndices[2]]});
+        face.drawFaceBorders();
+      }
     }
   }
 
   objFile.close();
 
-  framebuffer.write_tga_file("framebuffer.tga");
+  Canvas::framebuffer.write_tga_file("framebuffer.tga");
   return 0;
 }

@@ -22,9 +22,10 @@ int main(int argc, char** argv) {
 
 	TGAImage framebuffer(Canvas::width, Canvas::height, TGAImage::RGB);
 
-	Renderer::triangle(7, 45, 35, 100, 45, 45, framebuffer, Renderer::Colors::red);
+	Renderer::triangle(7, 45, 35, 100, 45, 60, framebuffer, Renderer::Colors::red);
 	Renderer::triangle(120, 35, 90, 5, 45, 110, framebuffer, Renderer::Colors::white);
 	Renderer::triangle(115, 83, 80, 90, 85, 120, framebuffer, Renderer::Colors::green);
+	Renderer::triangle(3, 3, 15, 3, 7, 30, framebuffer, Renderer::Colors::green);
 
 	framebuffer.write_tga_file("framebuffer.tga");
 	return 0;

@@ -116,29 +116,30 @@ namespace Renderer {
 
 		const int height{ cy - ay + 1 };
 
-		// idx 0 is x val at height ay
-		std::vector<std::array<int, 2>> horizLineEdges(height, { -1, -1 });
-		const bool isRight{ bx > ax };
+		if (ay != by) {
+			double x1(ax), x2(ax);
+			double slope1{ static_cast<double>(cx - ax) / (cy - ay) }, slope2{ static_cast<double>(bx - ax) / (by - ay) };
+			for (int y{ ay }; y <= by; ++y) {
+				for (double x{ std::min(x1, x2) }; x < std::max(x1, x2); ++x) {
+					framebuffer.set(x, y, color);
+				}
 
-		line(horizLineEdges, cy, isRight, cx, cy, bx, by, framebuffer, color);
-		line(horizLineEdges, cy, !isRight, cx, cy, ax, ay, framebuffer, color);
-		line(horizLineEdges, cy, isRight, bx, by, ax, ay, framebuffer, color);
+				x1 += slope1;
+				x2 += slope2;
+			}
+		}
 
-		for (int i{ 1 }; i < height; ++i) {
-			std::array<int, 2>& pair{ horizLineEdges[i] };
+		if (by != cy) {
+			double x1(cx), x2(cx);
+			double slope1{ static_cast<double>(ax - cx) / (ay - cy) }, slope2{ static_cast<double>(bx - cx) / (by - cy) };
+			for (int y{ cy }; y > by; --y) {
+				for (double x{ std::min(x1, x2) }; x < std::max(x1, x2); ++x) {
+					framebuffer.set(x, y, color);
+				}
 
-			if (pair[0] == -1 && pair[1] == -1) {
-				printf("A pair with two -1s !!!\n");
-				break;
+				x1 -= slope1;
+				x2 -= slope2;
 			}
-			if (pair[0] == -1) {
-				pair[0] = pair[1];
-			}
-			else if (pair[1] == -1) {
-				pair[1] = pair[0];
-			}
-			const int curY{ cy - i };
-			line(pair[0], curY, pair[1], curY, framebuffer, color);
 		}
 	}
 

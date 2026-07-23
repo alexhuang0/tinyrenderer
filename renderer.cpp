@@ -109,20 +109,20 @@ namespace Renderer {
 	}
 
 	void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& framebuffer, TGAColor color) {
-		// sort descending
-		if (ay < by) { std::swap(ay, by); std::swap(ax, bx); }
-		if (by < cy) { std::swap(by, cy); std::swap(bx, cx); }
-		if (ay < by) { std::swap(ay, by); std::swap(ax, bx); }
+		// sort ascending
+		if (ay > by) { std::swap(ay, by); std::swap(ax, bx); }
+		if (by > cy) { std::swap(by, cy); std::swap(bx, cx); }
+		if (ay > by) { std::swap(ay, by); std::swap(ax, bx); }
 
-		const int height{ ay - cy + 1 };
+		const int height{ cy - ay + 1 };
 
 		// idx 0 is x val at height ay
 		std::vector<std::array<int, 2>> horizLineEdges(height, { -1, -1 });
-		const bool isRight{ bx > cx };
+		const bool isRight{ bx > ax };
 
-		line(horizLineEdges, ay, isRight, ax, ay, bx, by, framebuffer, Colors::green);
-		line(horizLineEdges, ay, !isRight, ax, ay, cx, cy, framebuffer, Colors::blue);
-		line(horizLineEdges, ay, isRight, bx, by, cx, cy, framebuffer, Colors::white);
+		line(horizLineEdges, cy, isRight, cx, cy, bx, by, framebuffer, color);
+		line(horizLineEdges, cy, !isRight, cx, cy, ax, ay, framebuffer, color);
+		line(horizLineEdges, cy, isRight, bx, by, ax, ay, framebuffer, color);
 
 		for (int i{ 1 }; i < height; ++i) {
 			std::array<int, 2>& pair{ horizLineEdges[i] };
@@ -137,8 +137,8 @@ namespace Renderer {
 			else if (pair[1] == -1) {
 				pair[1] = pair[0];
 			}
-			const int curY{ ay - i };
-			line(pair[0], curY, pair[1], curY, framebuffer, Colors::red);
+			const int curY{ cy - i };
+			line(pair[0], curY, pair[1], curY, framebuffer, color);
 		}
 	}
 

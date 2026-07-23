@@ -1,7 +1,6 @@
 #include "model.h"
 #include <fstream>
 #include <sstream>
-#include "canvas.h"
 
 vec3 Model::vert(const std::size_t i) const {
 	// 0 <= i < nverts()
@@ -58,61 +57,4 @@ Model::Model(const std::string& filename) {
 
 	std::cout << "read " << nverts() << " vertices and " << nfaces() << " faces\n";
 	objFile.close();
-}
-
-void Model::line(int ax, int ay, int bx, int by, TGAImage& framebuffer,
-	TGAColor color) {
-	// check for steep vertical
-	bool steep{ std::abs(by - ay) > std::abs(bx - ax) };
-	if (steep) {
-		std::swap(ax, ay);
-		std::swap(bx, by);
-	}
-
-	if (ax > bx) {
-		std::swap(ax, bx);
-		std::swap(ay, by);
-	}
-
-	int dx{ bx - ax };
-	int dy{ std::abs(by - ay) };
-	int ierror{ 0 };
-	int ystep{ by > ay ? 1 : -1 };
-	int y{ ay };
-
-	for (int x = ax; x <= bx; ++x) {
-		if (steep) {
-			framebuffer.set(y, x, color);
-		}
-		else {
-			framebuffer.set(x, y, color);
-		}
-
-		ierror += 2 * dy;
-		if (ierror > dx) {
-			y += ystep;
-			ierror -= 2 * dx;
-		}
-	}
-}
-
-void Model::drawFaceTBorders(std::size_t facet_idx, TGAImage& framebuffer, const TGAColor& color) {
-	const vec3& v1{ vert(facet_idx, 0) };
-	const vec3& v2{ vert(facet_idx, 1) };
-	const vec3& v3{ vert(facet_idx, 2) };
-
-	auto [ax, ay] = project(v1);
-	auto [bx, by] = project(v2);
-	auto [cx, cy] = project(v3);
-
-	line(ax, ay, bx, by, framebuffer, color);
-	line(ax, ay, cx, cy, framebuffer, color);
-	line(cx, cy, bx, by, framebuffer, color);
-}
-
-std::tuple<int, int> const Model::project(const vec3& vec) const {
-	return {
-		std::round((vec[0] + 1.) * Canvas::midWidth),
-		std::round((vec[1] + 1.) * Canvas::midHeight),
-	};
 }

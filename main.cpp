@@ -12,6 +12,7 @@
 
 #include "canvas.h"
 #include "model.h"
+#include "renderer.h"
 
 constexpr TGAColor white = { 255, 255, 255, 255 }; // attention, BGRA order
 constexpr TGAColor green = { 0, 255, 0, 255 };
@@ -27,12 +28,12 @@ int main(int argc, char** argv) {
 	TGAImage framebuffer(Canvas::width, Canvas::height, TGAImage::RGB);
 
 	for (std::size_t i{ 0 }; i < model.nfaces(); ++i) {
-		model.drawFaceTBorders(i, framebuffer, red);
+		Renderer::drawFaceTBorders(model, i, framebuffer, red);
 	}
 
 	for (std::size_t i{ 0 }; i < model.nverts(); ++i) {
 		const vec3& vert{ model.vert(i) };
-		auto [ax, ay] = model.project(vert);
+		auto [ax, ay] = Renderer::project(vert);
 		framebuffer.set(ax, ay, white);
 	}
 

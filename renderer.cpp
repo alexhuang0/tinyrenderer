@@ -110,10 +110,11 @@ namespace Renderer {
 	}
 
 	int signed_parallelogram_area(int ax, int ay, int bx, int by, int cx, int cy) {
+		// AB cross AC
 		return (cx - ax) * (by - ay) - ((cy - ay) * (bx - ax));
 	}
 
-	void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& framebuffer, TGAColor color) {
+	void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& framebuffer, const TGAColor& color) {
 		int minX{ std::min(ax, std::min(bx, cx)) };
 		int minY{ std::min(ay, std::min(by, cy)) };
 		int maxX{ std::max(ax, std::max(bx, cx)) };

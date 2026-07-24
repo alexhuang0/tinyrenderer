@@ -17,15 +17,18 @@
 
 
 int main(int argc, char** argv) {
-	//Model model(R"(C:\Users\Alex\Documents\Alex Stuff\Programming\c++\tinyrenderer\obj\diablo3_pose\diablo3_pose.obj)");
-
+	Model model(R"(C:\Users\Alex\Documents\Alex Stuff\Programming\c++\tinyrenderer\obj\african_head\african_head.obj)");
 
 	TGAImage framebuffer(Canvas::width, Canvas::height, TGAImage::RGB);
 
-	Renderer::triangle(7, 45, 35, 100, 45, 60, framebuffer, Renderer::Colors::red);
-	Renderer::triangle(120, 35, 90, 5, 45, 110, framebuffer, Renderer::Colors::white);
-	Renderer::triangle(115, 83, 80, 90, 85, 120, framebuffer, Renderer::Colors::green);
-	Renderer::triangle(3, 3, 15, 3, 7, 30, framebuffer, Renderer::Colors::green);
+	for (int i{ 0 }; i < model.nfaces(); ++i) {
+		auto [ax, ay] = Renderer::project(model.vert(i, 0));
+		auto [bx, by] = Renderer::project(model.vert(i, 1));
+		auto [cx, cy] = Renderer::project(model.vert(i, 2));
+		TGAColor rnd;
+		for (int channel{ 0 }; channel < 3; ++channel) rnd[channel] = std::rand() % 255;
+		Renderer::triangle(ax, ay, bx, by, cx, cy, framebuffer, rnd);
+	}
 
 	framebuffer.write_tga_file("framebuffer.tga");
 	return 0;

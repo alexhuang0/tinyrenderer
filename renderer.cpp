@@ -120,12 +120,14 @@ namespace Renderer {
 		int maxX{ std::max(ax, std::max(bx, cx)) };
 		int maxY{ std::max(ay, std::max(by, cy)) };
 		float area2{ static_cast<float>(signed_parallelogram_area(ax, ay, bx, by, cx, cy)) }; // double of area triangle
+		if (area2 > -2) return;
+
 #pragma omp parallel for
 		for (int x{ minX }; x <= maxX; ++x) {
 			for (int y{ minY }; y <= maxY; ++y) {
 				float bcp{ signed_parallelogram_area(x, y, bx, by, cx, cy) / area2 }; // alpha
 				float cap{ signed_parallelogram_area(ax, ay, x, y, cx, cy) / area2 }; // beta
-				float abp{ 1 - bcp - cap }; // gamma
+				float abp{ 1.0f - bcp - cap }; // gamma
 
 				if (bcp >= 0 && cap >= 0 && abp >= 0) {
 					framebuffer.set(x, y, color);

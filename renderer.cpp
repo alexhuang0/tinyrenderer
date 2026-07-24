@@ -120,6 +120,8 @@ namespace Renderer {
 		int maxX{ std::max(ax, std::max(bx, cx)) };
 		int maxY{ std::max(ay, std::max(by, cy)) };
 		float area2{ static_cast<float>(signed_parallelogram_area(ax, ay, bx, by, cx, cy)) }; // double of area triangle
+		if (area2 < 1) return;
+
 #pragma omp parallel for
 		for (int x{ minX }; x <= maxX; ++x) {
 			for (int y{ minY }; y <= maxY; ++y) {

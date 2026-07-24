@@ -114,6 +114,31 @@ namespace Renderer {
 		return (cx - ax) * (by - ay) - ((cy - ay) * (bx - ax));
 	}
 
+	void triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, int cz, TGAImage& framebuffer) {
+		int minX{ std::min(ax, std::min(bx, cx)) };
+		int minY{ std::min(ay, std::min(by, cy)) };
+		int maxX{ std::max(ax, std::max(bx, cx)) };
+		int maxY{ std::max(ay, std::max(by, cy)) };
+		float area2{ static_cast<float>(signed_parallelogram_area(ax, ay, bx, by, cx, cy)) }; // double of area triangle
+		if (area2 > -2) return;
+
+#pragma omp parallel for
+		for (int x{ minX }; x <= maxX; ++x) {
+			for (int y{ minY }; y <= maxY; ++y) {
+				float alpha{ signed_parallelogram_area(x, y, bx, by, cx, cy) / area2 }; // bcp
+				float beta{ signed_parallelogram_area(ax, ay, x, y, cx, cy) / area2 }; // cap
+				float gamma{ 1.0f - alpha - beta }; // abp
+
+				unsigned char b{ static_cast<unsigned char>(alpha * az + beta * 0 + gamma * 0) };
+				unsigned char g{ static_cast<unsigned char>(alpha * 0 + beta * bz + gamma * 0) };
+				unsigned char r{ static_cast<unsigned char>(alpha * 0 + beta * 0 + gamma * cz) };
+
+				if (alpha >= 0 && beta >= 0 && gamma >= 0) {
+					framebuffer.set(x, y, { b, g, r });
+				}
+			}
+		}
+	}
 	void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& framebuffer, const TGAColor& color) {
 		int minX{ std::min(ax, std::min(bx, cx)) };
 		int minY{ std::min(ay, std::min(by, cy)) };
@@ -134,6 +159,5 @@ namespace Renderer {
 				}
 			}
 		}
-
 	}
 }

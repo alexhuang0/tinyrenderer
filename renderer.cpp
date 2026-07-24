@@ -1,5 +1,6 @@
 #include "renderer.h"
 #include <array>
+#include <omp.h>
 
 namespace {
 	template <typename T>
@@ -108,50 +109,28 @@ namespace Renderer {
 		line(cx, cy, bx, by, framebuffer, color);
 	}
 
-	void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& framebuffer, TGAColor color) {
-		// sort ascending
-		if (ay > by) { std::swap(ay, by); std::swap(ax, bx); }
-		if (by > cy) { std::swap(by, cy); std::swap(bx, cx); }
-		if (ay > by) { std::swap(ay, by); std::swap(ax, bx); }
-
-		const int height{ cy - ay + 1 };
-
-		if (ay != by) {
-			double x1(ax), x2(ax);
-			double slope1{ static_cast<double>(cx - ax) / (cy - ay) }, slope2{ static_cast<double>(bx - ax) / (by - ay) };
-			for (int y{ ay }; y <= by; ++y) {
-				for (double x{ std::min(x1, x2) }; x < std::max(x1, x2); ++x) {
-					framebuffer.set(x, y, color);
-				}
-
-				x1 += slope1;
-				x2 += slope2;
-			}
-		}
-
-		if (by != cy) {
-			double x1(cx), x2(cx);
-			double slope1{ static_cast<double>(ax - cx) / (ay - cy) }, slope2{ static_cast<double>(bx - cx) / (by - cy) };
-			for (int y{ cy }; y > by; --y) {
-				for (double x{ std::min(x1, x2) }; x < std::max(x1, x2); ++x) {
-					framebuffer.set(x, y, color);
-				}
-
-				x1 -= slope1;
-				x2 -= slope2;
-			}
-		}
+	int signed_parallelogram_area(int ax, int ay, int bx, int by, int cx, int cy) {
+		return (cx - ax) * (by - ay) - ((cy - ay) * (bx - ax));
 	}
 
-	void scanlineRender(const Model& model, std::size_t facet_idx, TGAImage& framebuffer, const TGAColor& color) {
-		const vec3& v1{ model.vert(facet_idx, 0) };
-		const vec3& v2{ model.vert(facet_idx, 1) };
-		const vec3& v3{ model.vert(facet_idx, 2) };
+	void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& framebuffer, TGAColor color) {
+		int minX{ std::min(ax, std::min(bx, cx)) };
+		int minY{ std::min(ay, std::min(by, cy)) };
+		int maxX{ std::max(ax, std::max(bx, cx)) };
+		int maxY{ std::max(ay, std::max(by, cy)) };
+		float area2{ static_cast<float>(signed_parallelogram_area(ax, ay, bx, by, cx, cy)) }; // double of area triangle
+#pragma omp parallel for
+		for (int x{ minX }; x <= maxX; ++x) {
+			for (int y{ minY }; y <= maxY; ++y) {
+				float bcp{ signed_parallelogram_area(x, y, bx, by, cx, cy) / area2 }; // alpha
+				float cap{ signed_parallelogram_area(ax, ay, x, y, cx, cy) / area2 }; // beta
+				float abp{ 1 - bcp - cap }; // gamma
 
-		auto [ax, ay] = project(v1);
-		auto [bx, by] = project(v2);
-		auto [cx, cy] = project(v3);
-
+				if (bcp >= 0 && cap >= 0 && abp >= 0) {
+					framebuffer.set(x, y, color);
+				}
+			}
+		}
 
 	}
 }

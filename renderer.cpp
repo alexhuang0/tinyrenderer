@@ -133,9 +133,11 @@ namespace Renderer {
 				unsigned char g{ static_cast<unsigned char>(alpha * 0 + beta * bz + gamma * 0) };
 				unsigned char r{ static_cast<unsigned char>(alpha * 0 + beta * 0 + gamma * cz) };
 
-				if (alpha >= 0 && beta >= 0 && gamma >= 0) {
-					framebuffer.set(x, y, { b, g, r });
-				}
+				if (alpha < 0 || beta < 0 || gamma < 0) continue;
+
+				if (std::min(alpha, std::min(beta, gamma)) > 0.13) continue;
+
+				framebuffer.set(x, y, { b, g, r });
 			}
 		}
 	}

@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 	int bx = 55, by = 39;
 	int cx = 23, cy = 59;
 
-	Renderer::triangle(ax, ay, 255, bx, by, 255, cx, cy, 50, framebuffer);
+	Renderer::triangle(ax, ay, 255, bx, by, 255, cx, cy, 255, framebuffer);
 	//Renderer::triangle(ax, ay, 0, bx, by, 255, cx, cy, 0, framebuffer);
 	//Renderer::triangle(ax, ay, 0, bx, by, 0, cx, cy, 255, framebuffer);
 

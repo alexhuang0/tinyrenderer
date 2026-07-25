@@ -42,7 +42,8 @@ int main(int argc, char** argv) {
 	//std::cout << m4.determinant() << '\n';
 	//std::cout << m3.determinant() << '\n';
 	//std::cout << m32.determinant() << '\n';
-	std::cout << m4.minorMatrix(2, 2) << '\n';
+	//std::cout << m4.adjoint() << '\n';
+	std::cout << m4.inverse() << '\n';
 
 
 	TGAImage framebuffer(Canvas::width, Canvas::height, TGAImage::RGB);

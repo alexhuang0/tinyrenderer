@@ -23,9 +23,9 @@ template<int n> vec<n>& operator-=(vec<n>& lhs, const vec<n>& rhs) {
 	}
 	return lhs;
 }
-template<int n> vec<n>& operator*=(vec<n>& lhs, const vec<n>& rhs) {
+template<int n, typename T> vec<n>& operator*=(vec<n>& lhs, T scalar) {
 	for (int i{ 0 }; i < n; ++i) {
-		lhs[i] *= rhs[i];
+		lhs[i] *= scalar;
 	}
 	return lhs;
 }
@@ -127,37 +127,38 @@ template<int R, int C> struct matrix {
 		}
 	}
 
-	int determinant() {
+	double determinant() {
 		assert(R == C);
 
+		matrix<R, C> matrix{ *this }; // make copy to not override
 		double determ{ 1 };
 		int switches{};
 
 		for (int pivot{ 0 }; pivot < R; ++pivot) {
-			double maxV{ std::abs((*this)[pivot][pivot]) };
+			double maxV{ std::abs(matrix[pivot][pivot]) };
 
 			// make matrix[pivot] row hold largest abs val at col pivot
 			for (int rowIdx{ pivot + 1 }; rowIdx < R; ++rowIdx) {
-				if (std::abs((*this)[rowIdx][pivot]) > maxV) {
-					maxV = std::abs((*this)[rowIdx][pivot]);
-					std::swap((*this)[rowIdx], (*this)[pivot]);
+				if (std::abs(matrix[rowIdx][pivot]) > maxV) {
+					maxV = std::abs(matrix[rowIdx][pivot]);
+					std::swap(matrix[rowIdx], matrix[pivot]);
 					++switches;
 				}
 			}
 
 			// for every row below pivot, make val at pivot col 0
 			for (int rowIdx{ pivot + 1 }; rowIdx < R; ++rowIdx) {
-				double factor = -((*this)[rowIdx][pivot]) / (*this)[pivot][pivot];
-				addRows((*this)[rowIdx], factor, (*this)[pivot]);
+				double factor = -(matrix[rowIdx][pivot]) / matrix[pivot][pivot];
+				addRows(matrix[rowIdx], factor, matrix[pivot]);
 			}
 		}
 
 		// now in row echelon form
 		for (int i{ 0 }; i < nrows(); ++i) {
-			determ *= (*this)[i][i];
+			determ *= matrix[i][i];
 		}
 
-		return determ * ((switches % 2) == 0 ? 1 : -1);
+		return determ * ((switches % 2) == 0 ? 1. : -1.);
 	}
 
 	// helper to get minor matrix of the big "this" matrix
@@ -186,29 +187,34 @@ template<int R, int C> struct matrix {
 		for (int i{ 0 }; i < R; ++i) {
 			for (int j{ 0 }; j < C; ++j) {
 				matrix<R - 1, C - 1> minorMatrix{};
-				double minorVal{};
+				double minorVal{ (*this).minorMatrix(i, j).determinant() };
+				int cofactor{ (i + j) % 2 == 0 ? 1 : -1 };
 
-				for (int k{ 0 }; k < R; ++k) {
-					if (k == i) continue;
-					for (int l{ 0 }; l < C; ++l) {
-						//if (l == j) 
-						//	minorMatrix[]
-					}
-				}
+				adj[j][i] = minorVal * cofactor;
 			}
 		}
 
-		return adj.transpose();
+		return adj;
 	}
 
 	matrix<R, C> inverse() {
+		double determ{ (*this).determinant() };
+		assert(determ != 0 && "Determinant of matrix isn't 0; no inverse exists");
 
+		matrix<C, R> adj{ (*this).adjoint() };
+		std::cout << '\n' << determ << '\n';
+		return (1 / determ) * adj;
 	}
 
+	// SCALAR MULTIPLICATION
+	template <typename T>
+	matrix<R, C>& operator*=(T scalar) {
+		for (vec<C>& row : (*this).data) {
+			row *= scalar;
+		}
 
-
-
-
+		return *this;
+	}
 
 	friend std::ostream& operator<<(std::ostream& out, const matrix<R, C>& m) {
 		for (std::size_t i = 0; i < R; ++i) out << m[i] << "\n";
@@ -229,4 +235,17 @@ matrix<r1, c2> operator*(const matrix<r1, K>& m1, const matrix<K, c2>& m2) {
 		}
 	}
 	return res;
+}
+
+template <int R, int C, typename T>
+matrix<R, C> operator*(matrix<R, C> m, T scalar) {
+	m *= scalar;
+
+	return m;
+}
+template <int R, int C, typename T>
+matrix<R, C> operator*(T scalar, matrix<R, C> m) {
+	m *= scalar;
+
+	return m;
 }

@@ -39,9 +39,10 @@ int main(int argc, char** argv) {
 		vec3{3, 1, 1}
 	};
 
-	std::cout << m4.determinant() << '\n';
-	std::cout << m3.determinant() << '\n';
-	std::cout << m32.determinant() << '\n';
+	//std::cout << m4.determinant() << '\n';
+	//std::cout << m3.determinant() << '\n';
+	//std::cout << m32.determinant() << '\n';
+	std::cout << m3 * m32 << '\n';
 
 
 	TGAImage framebuffer(Canvas::width, Canvas::height, TGAImage::RGB);

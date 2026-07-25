@@ -111,13 +111,13 @@ template<int R, int C> struct matrix {
 		matrix<C, R> res{};
 		for (int i{ 0 }; i < R; ++i) {
 			for (int j{ 0 }; j < C; ++j) {
-				res[j][i] = *this[i][j];
+				res[j][i] = (*this)[i][j];
 			}
 		}
 		return res;
 	}
 
-	// target row + factor * from
+	// targetRow + factor * fromRow
 	void addRows(vec<C>& target, double factor, const vec<C>& from) {
 		for (int c{ 0 }; c < C; ++c) {
 			target[c] += factor * from[c];
@@ -157,21 +157,32 @@ template<int R, int C> struct matrix {
 		return determ * ((switches % 2) == 0 ? 1 : -1);
 	}
 
-
-
 	matrix<R, C> inverse() {
 
 	}
+
+
+
+
+
+
+	friend std::ostream& operator<<(std::ostream& out, const matrix<R, C>& m) {
+		for (std::size_t i = 0; i < R; ++i) out << m[i] << "\n";
+		return out;
+	}
+
 };
 
+template<int r1, int K, int c2>
+matrix<r1, c2> operator*(const matrix<r1, K>& m1, const matrix<K, c2>& m2) {
+	matrix<r1, c2> res{};
 
-//template<int r1, int c1, int r2, int c2>
-//matrix<c1, r2> operator*(const matrix<r1, c1>& m1, const matrix<r2, c2>& m2) {
-//	matrix<c1, r2> res{};
-//
-//	for (int i{ 0 }; i < r1; ++i) {
-//		for (int j{ 0 }; j < c2; ++j) {
-//			res[i][j] = m1[i] * m2[]
-//		}
-//	}
-//}
+	for (int i{ 0 }; i < r1; ++i) {
+		for (int j{ 0 }; j < c2; ++j) {
+			for (int k{ 0 }; k < K; ++k) {
+				res[i][j] += m1[i][k] * m2[k][j];
+			}
+		}
+	}
+	return res;
+}

@@ -3,6 +3,7 @@
 #include <cassert>
 #include <iostream>
 #include <array>
+#include <vector>
 
 template<int n> struct vec {
 	double data[n]{};
@@ -63,6 +64,8 @@ template<int n> std::ostream& operator<<(std::ostream& out, const vec<n>& v) {
 	return out;
 }
 
+
+
 template<> struct vec<2> {
 	union {
 		struct { double x, y; };
@@ -101,7 +104,7 @@ typedef vec<4> vec4;
 
 // MATRICES
 template<int R, int C> struct matrix {
-	std::array<vec<C>, R> data{}; // R rows of vec<C>
+	std::array<vec<C>, R> data{ }; // R rows of vec<C>
 	int nrows() { return R; }
 	int ncols() { return C; }
 	vec<C>& operator[](const int i) { assert(i >= 0 && i < R); return data[i]; }
@@ -155,6 +158,47 @@ template<int R, int C> struct matrix {
 		}
 
 		return determ * ((switches % 2) == 0 ? 1 : -1);
+	}
+
+	// helper to get minor matrix of the big "this" matrix
+	matrix<R - 1, C - 1> minorMatrix(const int ai, const int aj) {
+		matrix<R - 1, C - 1> minorMatrix{};
+
+		for (int i{ 0 }, curRowIdx{ 0 }; i < R - 1; ++i, ++curRowIdx) {
+			if (curRowIdx == ai) { ++curRowIdx; }
+			for (int j{ 0 }; j < C - 1; ++j) {
+				if (j < aj) {
+					minorMatrix[i][j] = (*this)[curRowIdx][j];
+				}
+				else {
+					minorMatrix[i][j] = (*this)[curRowIdx][j + 1];
+				}
+			}
+		}
+
+		return minorMatrix;
+	}
+
+	matrix<C, R> adjoint() {
+		assert(C == R && "Adjoint only exists for sqr matrix");
+		matrix<C, R> adj{};
+
+		for (int i{ 0 }; i < R; ++i) {
+			for (int j{ 0 }; j < C; ++j) {
+				matrix<R - 1, C - 1> minorMatrix{};
+				double minorVal{};
+
+				for (int k{ 0 }; k < R; ++k) {
+					if (k == i) continue;
+					for (int l{ 0 }; l < C; ++l) {
+						//if (l == j) 
+						//	minorMatrix[]
+					}
+				}
+			}
+		}
+
+		return adj.transpose();
 	}
 
 	matrix<R, C> inverse() {

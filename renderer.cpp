@@ -110,7 +110,7 @@ namespace Renderer {
 		line(cx, cy, bx, by, framebuffer, color);
 	}
 
-	int signed_parallelogram_area(int ax, int ay, int bx, int by, int cx, int cy) {
+	static int signed_parallelogram_area(int ax, int ay, int bx, int by, int cx, int cy) {
 		// AB cross AC
 		return (cx - ax) * (by - ay) - ((cy - ay) * (bx - ax));
 	}

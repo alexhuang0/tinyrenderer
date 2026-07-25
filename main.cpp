@@ -20,7 +20,28 @@ int main(int argc, char** argv) {
 	//vector test
 	vec4 v1{ 3, 6, 2, -5 };
 	vec4 v2{ 10, 10, -3, 0 };
-	std::cout << v1 - v2;
+	//std::cout << v1 - v2;
+
+	matrix<4, 4> m4{
+		vec4{ 2, 1, -3, 2 },
+		vec4{0, -5, 1, 4},
+		vec4{1, 0, 2, -6},
+		vec4{7, 4, -1, 3}
+	};
+	matrix<3, 3> m3{
+		vec3{0, 1, 5},
+		vec3{3, -6, 9},
+		vec3{2, 6, 1}
+	};
+	matrix<3, 3> m32{
+		vec3{1, -1, 1},
+		vec3{-6, 1, -1},
+		vec3{3, 1, 1}
+	};
+
+	std::cout << m4.determinant() << '\n';
+	std::cout << m3.determinant() << '\n';
+	std::cout << m32.determinant() << '\n';
 
 
 	TGAImage framebuffer(Canvas::width, Canvas::height, TGAImage::RGB);

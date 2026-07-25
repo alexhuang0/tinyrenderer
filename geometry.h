@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cassert>
 #include <iostream>
+#include <array>
 
 template<int n> struct vec {
 	double data[n]{};
@@ -97,3 +98,80 @@ typedef vec<3> vec3;
 typedef vec<4> vec4;
 
 
+
+// MATRICES
+template<int R, int C> struct matrix {
+	std::array<vec<C>, R> data{}; // R rows of vec<C>
+	int nrows() { return R; }
+	int ncols() { return C; }
+	vec<C>& operator[](const int i) { assert(i >= 0 && i < R); return data[i]; }
+	vec<C> operator[](const int i) const { assert(i >= 0 && i < R); return data[i]; }
+
+	matrix<C, R> transpose() {
+		matrix<C, R> res{};
+		for (int i{ 0 }; i < R; ++i) {
+			for (int j{ 0 }; j < C; ++j) {
+				res[j][i] = *this[i][j];
+			}
+		}
+		return res;
+	}
+
+	// target row + factor * from
+	void addRows(vec<C>& target, double factor, const vec<C>& from) {
+		for (int c{ 0 }; c < C; ++c) {
+			target[c] += factor * from[c];
+		}
+	}
+
+	int determinant() {
+		assert(R == C);
+
+		double determ{ 1 };
+		int switches{};
+
+		for (int pivot{ 0 }; pivot < R; ++pivot) {
+			double maxV{ std::abs((*this)[pivot][pivot]) };
+
+			// make matrix[pivot] row hold largest abs val at col pivot
+			for (int rowIdx{ pivot + 1 }; rowIdx < R; ++rowIdx) {
+				if (std::abs((*this)[rowIdx][pivot]) > maxV) {
+					maxV = std::abs((*this)[rowIdx][pivot]);
+					std::swap((*this)[rowIdx], (*this)[pivot]);
+					++switches;
+				}
+			}
+
+			// for every row below pivot, make val at pivot col 0
+			for (int rowIdx{ pivot + 1 }; rowIdx < R; ++rowIdx) {
+				double factor = -((*this)[rowIdx][pivot]) / (*this)[pivot][pivot];
+				addRows((*this)[rowIdx], factor, (*this)[pivot]);
+			}
+		}
+
+		// now in row echelon form
+		for (int i{ 0 }; i < nrows(); ++i) {
+			determ *= (*this)[i][i];
+		}
+
+		return determ * ((switches % 2) == 0 ? 1 : -1);
+	}
+
+
+
+	matrix<R, C> inverse() {
+
+	}
+};
+
+
+//template<int r1, int c1, int r2, int c2>
+//matrix<c1, r2> operator*(const matrix<r1, c1>& m1, const matrix<r2, c2>& m2) {
+//	matrix<c1, r2> res{};
+//
+//	for (int i{ 0 }; i < r1; ++i) {
+//		for (int j{ 0 }; j < c2; ++j) {
+//			res[i][j] = m1[i] * m2[]
+//		}
+//	}
+//}

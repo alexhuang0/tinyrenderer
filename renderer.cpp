@@ -88,10 +88,11 @@ namespace Renderer {
 		}
 	}
 
-	std::tuple<int, int> const project(const vec3& vec) {
+	std::tuple<int, int, int> const project(const vec3& vec) {
 		return {
-			std::round((vec[0] + 1.) * Canvas::midWidth),
-			std::round((vec[1] + 1.) * Canvas::midHeight),
+			std::round((vec.x + 1.) * Canvas::midWidth),
+			std::round((vec.y + 1.) * Canvas::midHeight),
+			std::round((vec.z + 1.) * 255. / 2),
 		};
 	}
 
@@ -100,9 +101,9 @@ namespace Renderer {
 		const vec3& v2{ model.vert(facet_idx, 1) };
 		const vec3& v3{ model.vert(facet_idx, 2) };
 
-		auto [ax, ay] = project(v1);
-		auto [bx, by] = project(v2);
-		auto [cx, cy] = project(v3);
+		auto [ax, ay, az] = project(v1);
+		auto [bx, by, bz] = project(v2);
+		auto [cx, cy, cz] = project(v3);
 
 		line(ax, ay, bx, by, framebuffer, color);
 		line(ax, ay, cx, cy, framebuffer, color);
@@ -114,7 +115,7 @@ namespace Renderer {
 		return (cx - ax) * (by - ay) - ((cy - ay) * (bx - ax));
 	}
 
-	void triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, int cz, TGAImage& framebuffer) {
+	void triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, int cz, TGAImage& zbuffer, TGAImage& framebuffer, const TGAColor& color) {
 		int minX{ std::min(ax, std::min(bx, cx)) };
 		int minY{ std::min(ay, std::min(by, cy)) };
 		int maxX{ std::max(ax, std::max(bx, cx)) };
@@ -129,15 +130,13 @@ namespace Renderer {
 				float beta{ signed_parallelogram_area(ax, ay, x, y, cx, cy) / area2 }; // cap
 				float gamma{ 1.0f - alpha - beta }; // abp
 
-				unsigned char b{ static_cast<unsigned char>(alpha * az + beta * 0 + gamma * 0) };
-				unsigned char g{ static_cast<unsigned char>(alpha * 0 + beta * bz + gamma * 0) };
-				unsigned char r{ static_cast<unsigned char>(alpha * 0 + beta * 0 + gamma * cz) };
-
 				if (alpha < 0 || beta < 0 || gamma < 0) continue;
 
-				if (std::min(alpha, std::min(beta, gamma)) > 0.13) continue;
+				unsigned char z{ static_cast<unsigned char>(alpha * az + beta * bz + gamma * cz) };
+				if (z <= zbuffer.get(x, y)[0]) continue;
 
-				framebuffer.set(x, y, { b, g, r });
+				zbuffer.set(x, y, { z });
+				framebuffer.set(x, y, color);
 			}
 		}
 	}

@@ -17,10 +17,10 @@ namespace Renderer {
 	void line(std::vector<std::array<int, 2>>& horizLineEdges, int maxY, bool isRight
 		, int ax, int ay, int bx, int by, TGAImage& framebuffer,
 		const TGAColor& color);
-	std::tuple<int, int> const project(const vec3& vec);
+	std::tuple<int, int, int> const project(const vec3& vec);
 	void drawFaceTBorders(const Model& model, std::size_t facet_idx, TGAImage& framebuffer, const TGAColor& color);
 
-	void triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, int cz, TGAImage& framebuffer);
+	void triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, int cz, TGAImage& zbuffer, TGAImage& framebuffer, const TGAColor& color);
 	void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& framebuffer, const TGAColor& color);
 	void scanlineRender(const Model& model, std::size_t facet_idx, TGAImage& framebuffer, const TGAColor& color);
 };

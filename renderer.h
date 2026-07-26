@@ -1,7 +1,7 @@
 #pragma once
 #include "tgaimage.h"
 #include "canvas.h"
-#include "geometry.h"
+#include "geometry/geometry.h"
 #include "model.h"
 
 namespace Renderer {

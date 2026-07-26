@@ -1,5 +1,4 @@
-﻿#include "tgaimage.h"
-#include <array>
+﻿#include <array>
 #include <cmath>
 #include <vector>
 
@@ -9,6 +8,8 @@
 #include <ranges>
 #include <sstream>
 #include <string>
+
+#include "tgaimage.h"
 
 #include "canvas.h"
 #include "model.h"

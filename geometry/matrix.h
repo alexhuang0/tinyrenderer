@@ -128,6 +128,7 @@ template<Size R, Size C> struct matrix {
 
 };
 
+// Matrix multiplication
 template<Size r1, Size K, Size c2>
 matrix<r1, c2> operator*(const matrix<r1, K>& m1, const matrix<K, c2>& m2) {
 	matrix<r1, c2> res{};
@@ -142,6 +143,27 @@ matrix<r1, c2> operator*(const matrix<r1, K>& m1, const matrix<K, c2>& m2) {
 	return res;
 }
 
+template<Size r, Size c>
+vec<r> operator*(const matrix<r, c>& m, const vec<r>& v) {
+	vec<r> res{};
+
+	for (Idx i{ 0 }; i < r; ++i) {
+		res[i] = dot(m[i], v);
+	}
+	return res;
+}
+
+template<Size r, Size c>
+vec<r> operator*(const vec<r>& v, const matrix<r, c>& m) {
+	vec<r> res{};
+
+	for (Idx i{ 0 }; i < r; ++i) {
+		res[i] = dot(m[i], v);
+	}
+	return res;
+}
+
+// Scalar multiplication
 template <Size R, Size C, typename T>
 matrix<R, C> operator*(matrix<R, C> m, T scalar) {
 	m *= scalar;

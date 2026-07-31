@@ -13,6 +13,40 @@ template<Size n> struct vec {
 	double  operator[](Idx i) const { assert(i >= 0 && i < n); return data[i]; }
 };
 
+template<> struct vec<2> {
+	union {
+		struct { double x, y; };
+		double data[2];
+
+	};
+	double& operator[](Idx i) { assert(i >= 0 && i < 2); return data[i]; }
+	double operator[](Idx i) const { assert(i >= 0 && i < 2); return data[i]; }
+};
+
+template<> struct vec<3> {
+	union {
+		struct { double x, y, z; };
+		double data[3];
+
+	};
+	double& operator[](Idx i) { assert(i >= 0 && i < 3); return data[i]; }
+	double operator[](Idx i) const { assert(i >= 0 && i < 3); return data[i]; }
+};
+
+template<> struct vec<4> {
+	union {
+		struct { double x, y, z, w; };
+		double data[4];
+
+	};
+	double& operator[](Idx i) { assert(i >= 0 && i < 4); return data[i]; }
+	double operator[](Idx i) const { assert(i >= 0 && i < 4); return data[i]; }
+};
+
+using vec2 = vec<2>;
+using vec3 = vec<3>;
+using vec4 = vec<4>;
+
 template<Size n> vec<n>& operator+=(vec<n>& lhs, const vec<n>& rhs) {
 	for (Idx i{ 0 }; i < n; ++i) {
 		lhs[i] += rhs[i];
@@ -66,38 +100,4 @@ template<Size n> std::ostream& operator<<(std::ostream& out, const vec<n>& v) {
 	return out;
 }
 
-
-
-template<> struct vec<2> {
-	union {
-		struct { double x, y; };
-		double data[2];
-
-	};
-	double& operator[](Idx i) { assert(i >= 0 && i < 2); return data[i]; }
-	double operator[](Idx i) const { assert(i >= 0 && i < 2); return data[i]; }
-};
-
-template<> struct vec<3> {
-	union {
-		struct { double x, y, z; };
-		double data[3];
-
-	};
-	double& operator[](Idx i) { assert(i >= 0 && i < 3); return data[i]; }
-	double operator[](Idx i) const { assert(i >= 0 && i < 3); return data[i]; }
-};
-
-template<> struct vec<4> {
-	union {
-		struct { double x, y, z, w; };
-		double data[4];
-
-	};
-	double& operator[](Idx i) { assert(i >= 0 && i < 4); return data[i]; }
-	double operator[](Idx i) const { assert(i >= 0 && i < 4); return data[i]; }
-};
-
-using vec2 = vec<2>;
-using vec3 = vec<3>;
-using vec4 = vec<4>;
+vec3 rot(vec3 v);

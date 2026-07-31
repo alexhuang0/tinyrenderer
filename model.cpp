@@ -35,7 +35,7 @@ Model::Model(const std::string& filename) {
 			double z{};
 
 			if (std::sscanf(curLine.c_str(), "v %lf %lf %lf", &x, &y, &z) == 3) {
-				Model::verts.push_back({ x, y, z });
+				Model::verts.push_back(rot({ x, y, z }));
 			}
 		}
 		else if (curLine.compare(0, 2, "f ") == 0) {

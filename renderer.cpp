@@ -88,6 +88,29 @@ namespace Renderer {
 		}
 	}
 
+	// homogeneous coordinates stuff
+	matrix<4, 4> viewport(int x, int y) {
+		return { 
+			{
+				vec4{Canvas::width / 2., 0, 0, x + Canvas::width / 2.}, 
+				{0, Canvas::height / 2., 0, y + Canvas::height / 2.}, 
+				{0,0,1,0}, 
+				{0,0,0,1}
+			} 
+		};
+	}
+
+	matrix<4, 4> perspective(double f) {
+		return {
+			{
+			vec4{1, 0, 0, 0},
+			{0, 1, 0, 0},
+			{0, 0, 1, 0},
+			{0, 0, -1/f, 1}
+			}
+		};
+	}
+
 	std::tuple<int, int, int> const project(const vec3& vec) {
 		return {
 			std::round((vec.x + 1.) * Canvas::midWidth),

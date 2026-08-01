@@ -109,6 +109,16 @@ template<Size n> double dot(const vec<n>& lhs, const vec<n>& rhs) {
 	return res;
 }
 
+// cross product
+inline vec3 cross3d(const vec3& a, const vec3& b) {
+	return {
+		(a.y * b.z - (a.z * b.y)),
+		-(a.x * b.z - (a.z * b.x)),
+		(a.x - b.y - (a.x * b.y))
+	};
+}
+
+// norm, normalize
 template<Size n> double norm(const vec<n>& v) {
 	return std::sqrt(v * v);
 }

@@ -101,3 +101,4 @@ template<Size n> std::ostream& operator<<(std::ostream& out, const vec<n>& v) {
 }
 
 vec3 rot(vec3 v);
+vec3 persp(vec3 v);

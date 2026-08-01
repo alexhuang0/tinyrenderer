@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
 	//Renderer::triangle(ax, ay, 0, bx, by, 0, cx, cy, 255, framebuffer);
 
 	std::string_view obj{ "african_head" };
-	Model model(R"(C:\Users\Alex\Documents\Alex Stuff\Programming\c++\tinyrenderer\obj\african_head\african_head.obj)");
+	Model model(R"(C:\Users\Alex\Documents\Alex Stuff\Programming\c++\tinyrenderer\obj\diablo3_pose\diablo3_pose.obj)");
 	for (int i{ 0 }; i < model.nfaces(); ++i) {
 		auto [ax, ay, az] = Renderer::project(model.vert(i, 0));
 		auto [bx, by, bz] = Renderer::project(model.vert(i, 1));

@@ -20,6 +20,10 @@ namespace Renderer {
 	std::tuple<int, int, int> const project(const vec3& vec);
 	void drawFaceTBorders(const Model& model, std::size_t facet_idx, TGAImage& framebuffer, const TGAColor& color);
 
-	void triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, int cz, TGAImage& zbuffer, TGAImage& framebuffer, const TGAColor& color);
+	void triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, int cz,
+		TGAImage& zbuffer, TGAImage& framebuffer, const TGAColor& color);
+	void triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, int cz,
+		std::vector<double>& zbuffer,
+		TGAImage& framebuffer, const TGAColor& color);
 	void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& framebuffer, const TGAColor& color);
 };

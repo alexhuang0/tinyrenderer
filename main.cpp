@@ -48,7 +48,8 @@ int main(int argc, char** argv) {
 
 
 	TGAImage framebuffer(Canvas::width, Canvas::height, TGAImage::RGB);
-	TGAImage depthbuffer(Canvas::width, Canvas::height, TGAImage::GRAYSCALE);
+	//TGAImage depthbuffer(Canvas::width, Canvas::height, TGAImage::GRAYSCALE);
+	std::vector<double> depthbuffer(Canvas::width * Canvas::height);
 
 	//int ax = 17, ay = 4;
 	//int bx = 55, by = 39;
@@ -70,6 +71,6 @@ int main(int argc, char** argv) {
 	}
 
 	framebuffer.write_tga_file("framebuffer.tga");
-	depthbuffer.write_tga_file("zbuffer.tga");
+	//depthbuffer.write_tga_file("zbuffer.tga");
 	return 0;
 }

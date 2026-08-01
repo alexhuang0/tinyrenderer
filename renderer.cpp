@@ -140,6 +140,36 @@ namespace Renderer {
 			}
 		}
 	}
+	void triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, int cz,
+		std::vector<double>& zbuffer,
+		TGAImage& framebuffer, const TGAColor& color) {
+
+		int minX{ std::max(0, std::min(ax, std::min(bx, cx))) };
+		int minY{ std::max(0, std::min(ay, std::min(by, cy))) };
+		int maxX{ std::min(Canvas::width - 1, std::max(ax, std::max(bx, cx))) };
+		int maxY{ std::min(Canvas::height - 1, std::max(ay, std::max(by, cy))) };
+		float area2{ static_cast<float>(signed_parallelogram_area(ax, ay, bx, by, cx, cy)) }; // double of area triangle
+		if (area2 > -2) return;
+
+#pragma omp parallel for
+		for (int x{ minX }; x <= maxX; ++x) {
+			for (int y{ minY }; y <= maxY; ++y) {
+				float alpha{ signed_parallelogram_area(x, y, bx, by, cx, cy) / area2 }; // bcp
+				float beta{ signed_parallelogram_area(ax, ay, x, y, cx, cy) / area2 }; // cap
+				float gamma{ 1.0f - alpha - beta }; // abp
+
+				if (alpha < 0 || beta < 0 || gamma < 0) continue;
+
+				unsigned char z{ static_cast<unsigned char>(alpha * az + beta * bz + gamma * cz) };
+				if (y * Canvas::width + x >= Canvas::width * Canvas::height) continue;
+				if (z <= zbuffer[static_cast<std::size_t>(y * Canvas::width + x)]) continue;
+
+				zbuffer[static_cast<std::size_t>(y * Canvas::width + x)] = z;
+				framebuffer.set(x, y, color);
+			}
+		}
+	}
+
 	void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& framebuffer, const TGAColor& color) {
 		int minX{ std::min(ax, std::min(bx, cx)) };
 		int minY{ std::min(ay, std::min(by, cy)) };

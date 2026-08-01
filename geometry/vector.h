@@ -65,6 +65,12 @@ template<Size n, typename T> vec<n>& operator*=(vec<n>& lhs, T scalar) {
 	}
 	return lhs;
 }
+template<Size n, typename T> vec<n>& operator/=(vec<n>& lhs, T scalar) {
+	for (Idx i{ 0 }; i < n; ++i) {
+		lhs[i] /= scalar;
+	}
+	return lhs;
+}
 
 template<Size n> vec<n> operator+(vec<n> lhs, const vec<n>& rhs) {
 	lhs += rhs;
@@ -76,13 +82,21 @@ template<Size n> vec<n> operator-(vec<n> lhs, const vec<n>& rhs) {
 	return lhs;
 }
 
-// scalar multiplication
+// scalar multiplication & division
 template<Size n, typename T> vec<n> operator*(T scalar, vec<n> vect) {
 	vect *= scalar;
 	return vect;
 }
 template<Size n, typename T> vec<n> operator*(vec<n> vect, T scalar) {
 	vect *= scalar;
+	return vect;
+}
+template<Size n, typename T> vec<n> operator/(T scalar, vec<n> vect) {
+	vect /= scalar;
+	return vect;
+}
+template<Size n, typename T> vec<n> operator/(vec<n> vect, T scalar) {
+	vect /= scalar;
 	return vect;
 }
 
@@ -93,6 +107,14 @@ template<Size n> double dot(const vec<n>& lhs, const vec<n>& rhs) {
 		res += lhs[i] * rhs[i];
 	}
 	return res;
+}
+
+template<Size n> double norm(const vec<n>& v) {
+	return std::sqrt(v * v);
+}
+
+template<Size n> vec<n> normalize(const vec<n>& v) {
+	return v / norm(v);
 }
 
 template<Size n> std::ostream& operator<<(std::ostream& out, const vec<n>& v) {

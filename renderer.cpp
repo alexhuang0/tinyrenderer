@@ -90,13 +90,13 @@ namespace Renderer {
 
 	// homogeneous coordinates stuff
 	matrix<4, 4> viewport(int x, int y) {
-		return { 
+		return {
 			{
-				vec4{Canvas::width / 2., 0, 0, x + Canvas::width / 2.}, 
-				{0, Canvas::height / 2., 0, y + Canvas::height / 2.}, 
-				{0,0,1,0}, 
+				vec4{Canvas::width / 2., 0, 0, x + Canvas::width / 2.},
+				{0, Canvas::height / 2., 0, y + Canvas::height / 2.},
+				{0,0,1,0},
 				{0,0,0,1}
-			} 
+			}
 		};
 	}
 
@@ -106,7 +106,7 @@ namespace Renderer {
 			vec4{1, 0, 0, 0},
 			{0, 1, 0, 0},
 			{0, 0, 1, 0},
-			{0, 0, -1/f, 1}
+			{0, 0, -1 / f, 1}
 			}
 		};
 	}
@@ -189,28 +189,6 @@ namespace Renderer {
 
 				zbuffer[static_cast<std::size_t>(y * Canvas::width + x)] = z;
 				framebuffer.set(x, y, color);
-			}
-		}
-	}
-
-	void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& framebuffer, const TGAColor& color) {
-		int minX{ std::min(ax, std::min(bx, cx)) };
-		int minY{ std::min(ay, std::min(by, cy)) };
-		int maxX{ std::max(ax, std::max(bx, cx)) };
-		int maxY{ std::max(ay, std::max(by, cy)) };
-		float area2{ static_cast<float>(signed_parallelogram_area(ax, ay, bx, by, cx, cy)) }; // double of area triangle
-		if (area2 > -2) return;
-
-#pragma omp parallel for
-		for (int x{ minX }; x <= maxX; ++x) {
-			for (int y{ minY }; y <= maxY; ++y) {
-				float bcp{ signed_parallelogram_area(x, y, bx, by, cx, cy) / area2 }; // alpha
-				float cap{ signed_parallelogram_area(ax, ay, x, y, cx, cy) / area2 }; // beta
-				float abp{ 1.0f - bcp - cap }; // gamma
-
-				if (bcp >= 0 && cap >= 0 && abp >= 0) {
-					framebuffer.set(x, y, color);
-				}
 			}
 		}
 	}

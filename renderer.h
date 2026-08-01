@@ -25,5 +25,4 @@ namespace Renderer {
 	void triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, int cz,
 		std::vector<double>& zbuffer,
 		TGAImage& framebuffer, const TGAColor& color);
-	void triangle(int ax, int ay, int bx, int by, int cx, int cy, TGAImage& framebuffer, const TGAColor& color);
 };

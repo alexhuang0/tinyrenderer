@@ -111,6 +111,28 @@ namespace Renderer {
 		};
 	}
 
+	matrix<4, 4> modelView(const vec<3>& eye, const vec<3>& center, const vec<3>& up) {
+		vec3 n{ normalize(eye - center) };
+		vec3 l{ normalize(cross3d(up, n)) };
+		vec3 m{ normalize(cross3d(n, l)) };
+
+		matrix<4, 4> translateCenter{
+			vec4{1, 0, 0, -center.x},
+			{0, 1, 0, -center.y},
+			{0, 0, 1, -center.z},
+			{0, 0, 0, 1}
+		};
+
+		matrix<4, 4> basis_change_matrix_inverted{
+			vec4{l.x, l.y, l.z, 0},
+			{m.x, m.y, m.z, 0},
+			{n.x, n.y, n.z, 0},
+			{0, 0, 0, 1}
+		};
+
+		return basis_change_matrix_inverted * translateCenter;
+	}
+
 	std::tuple<int, int, int> const project(const vec3& vec) {
 		return {
 			std::round((vec.x + 1.) * Canvas::midWidth),

@@ -144,7 +144,7 @@ matrix<r1, c2> operator*(const matrix<r1, K>& m1, const matrix<K, c2>& m2) {
 }
 
 template<Size r, Size c>
-vec<r> operator*(const matrix<r, c>& m, const vec<r>& v) {
+vec<r> operator*(const matrix<r, c>& m, const vec<c>& v) {
 	vec<r> res{};
 
 	for (Idx i{ 0 }; i < r; ++i) {
@@ -154,7 +154,7 @@ vec<r> operator*(const matrix<r, c>& m, const vec<r>& v) {
 }
 
 template<Size r, Size c>
-vec<r> operator*(const vec<r>& v, const matrix<r, c>& m) {
+vec<r> operator*(const vec<c>& v, const matrix<r, c>& m) {
 	vec<r> res{};
 
 	for (Idx i{ 0 }; i < r; ++i) {

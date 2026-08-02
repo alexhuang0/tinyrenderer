@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
 	using namespace Canvas;
 
 	TGAImage framebuffer(Canvas::width, Canvas::height, TGAImage::RGB);
-	std::vector<double> depthbuffer(Canvas::width * Canvas::height);
+	std::vector<double> depthbuffer(Canvas::width * Canvas::height, -std::numeric_limits<double>::max());
 
 	Model model(R"(C:\Users\Alex\Documents\Alex Stuff\Programming\c++\tinyrenderer\obj\diablo3_pose\diablo3_pose.obj)");
 
@@ -33,15 +33,19 @@ int main(int argc, char** argv) {
 	const matrix<4, 4> Perspective{ Renderer::perspective(norm(eye - center)) };
 	const matrix<4, 4> ViewPort{ Renderer::viewport(width / 16, height / 16, width * 7 / 8, height * 7 / 8) };
 
-	const matrix<4, 4> ComposeTransforms{ Renderer::composeTransforms(ModelView, Perspective) };
+	const matrix<4, 4> ComposeTransforms{ Renderer::composeTransforms(Perspective, ModelView) };
 
 	for (int i{ 0 }; i < model.nfaces(); ++i) {
-		auto [ax, ay, az] = Renderer::project(model.vert(i, 0));
-		auto [bx, by, bz] = Renderer::project(model.vert(i, 1));
-		auto [cx, cy, cz] = Renderer::project(model.vert(i, 2));
+		vec4 triang_vertices[3]{};
+
+		for (int j{ 0 }; j < 3; ++j) {
+			vec3 v{ model.vert(i, j) };
+			triang_vertices[j] = ComposeTransforms * vec4{ v.x, v.y, v.z, 1. };
+		}
+
 		TGAColor rnd;
 		for (int channel{ 0 }; channel < 3; ++channel) rnd[channel] = std::rand() % 255;
-		Renderer::triangle(ax, ay, az, bx, by, bz, cx, cy, cz, depthbuffer, framebuffer, rnd);
+		Renderer::rasterize(triang_vertices, ViewPort, depthbuffer, framebuffer, rnd);
 	}
 
 	framebuffer.write_tga_file("framebuffer.tga");

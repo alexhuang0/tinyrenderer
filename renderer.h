@@ -30,4 +30,6 @@ namespace Renderer {
 	matrix<4, 4> perspective(double f);
 	matrix<4, 4> modelView(const vec<3>& eye, const vec<3>& center, const vec<3>& up);
 	matrix<4, 4> composeTransforms(const matrix<4, 4>& modelView, const matrix<4, 4>& perspective);
+
+	void rasterize(const vec4 clip[3], const matrix<4, 4>& viewport, std::vector<double>& zbuffer, TGAImage& framebuffer, const TGAColor& color);
 };

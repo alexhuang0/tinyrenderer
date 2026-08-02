@@ -35,6 +35,9 @@ struct RandomShader : IShader {
 	}
 
 	virtual std::pair<bool, TGAColor> fragment(const vec3& bary_coords) const {
+
+
+
 		return { false, color };
 	}
 };
@@ -44,9 +47,6 @@ int main(int argc, char** argv) {
 
 	Model model(R"(C:\Users\Alex\Documents\Alex Stuff\Programming\c++\tinyrenderer\obj\diablo3_pose\diablo3_pose.obj)");
 
-	constexpr vec3    eye{ -1,0,2 }; // camera position
-	constexpr vec3 center{ 0,0,0 };  // camera direction
-	constexpr vec3     up{ 0,1,0 };  // camera up vector
 	RenderContext rContext{};
 	rContext.lookat(eye, center, up);
 	rContext.init_perspective(norm(eye - center));

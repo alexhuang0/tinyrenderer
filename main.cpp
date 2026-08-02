@@ -15,29 +15,26 @@
 #include "model.h"
 #include "our_gl.h"
 
-struct RandomShader : IShader {
+struct AmbientShader : IShader {
 	const Model& model_;
 	const RenderContext rContext_;
 	TGAColor color{};
 	vec3 tri[3]; // triangle in eye coords
 
-	RandomShader(const Model& m, const RenderContext& rc)
+	AmbientShader(const Model& m, const RenderContext& rc)
 		: model_{ m }
 		, rContext_{ rc }
 	{
 	}
 
-	virtual vec4 vertex(int face, int vert) {
+	vec4 vertex(int face, int vert) {
 		vec3 v = model_.vert(face, vert); // cur vertex in obj coord
 		vec4 global_pos = rContext_.ModelView * vec4{ v.x, v.y, v.z, 1. };
 		tri[vert] = global_pos.xyz();
 		return rContext_.Perspective * global_pos;
 	}
 
-	virtual std::pair<bool, TGAColor> fragment(const vec3& bary_coords) const {
-
-
-
+	std::pair<bool, TGAColor> fragment(const vec3& bary_coords) const override {
 		return { false, color };
 	}
 };
@@ -56,8 +53,9 @@ int main(int argc, char** argv) {
 	TGAImage framebuffer(width, height, TGAImage::GRAYSCALE);
 	rContext.init_zbuffer();
 
-	RandomShader ambient(model, rContext);
-	RandomShader diffuse(model, rContext);
+	AmbientShader ambient(model, rContext);
+	//RandomShader diffuse(model, rContext);
+	//RandomShader specular(model, rContext);
 
 	for (int f{ 0 }; f < model.nfaces(); ++f) {
 		ambient.color = { 100 };
@@ -68,7 +66,14 @@ int main(int argc, char** argv) {
 			ambient.vertex(f, 2)
 		};
 
-		rContext.rasterize(triang_vertices, ambient, framebuffer);
+		//rContext.rasterize(triang_vertices, ambient, framebuffer);
+
+		triang_vertices = {
+			diffuse.vertex(f, 0),
+			diffuse.vertex(f, 1),
+			diffuse.vertex(f, 2)
+		};
+		rContext.rasterize(triang_vertices, diffuse, framebuffer);
 	}
 
 	framebuffer.write_tga_file("framebuffer.tga");

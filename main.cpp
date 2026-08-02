@@ -53,26 +53,22 @@ int main(int argc, char** argv) {
 	rContext.init_viewport(width / 16, height / 16, width * 7 / 8, height * 7 / 8);
 	rContext.composeTransforms();
 
-	TGAImage framebuffer(width, height, TGAImage::RGB, { 177, 195, 209, 255 });
+	TGAImage framebuffer(width, height, TGAImage::GRAYSCALE);
 	rContext.init_zbuffer();
 
-	RandomShader shader(model, rContext);
+	RandomShader ambient(model, rContext);
+	RandomShader diffuse(model, rContext);
+
 	for (int f{ 0 }; f < model.nfaces(); ++f) {
-		shader.color = {
-			static_cast<unsigned char>(std::rand() % 255),
-			static_cast<unsigned char>(std::rand() % 255),
-			static_cast<unsigned char>(std::rand() % 255),
-			255
-		};
+		ambient.color = { 100 };
 
 		Triangle triang_vertices{
-			shader.vertex(f, 0),
-			shader.vertex(f, 1),
-			shader.vertex(f, 2)
+			ambient.vertex(f, 0),
+			ambient.vertex(f, 1),
+			ambient.vertex(f, 2)
 		};
 
-
-		rContext.rasterize(triang_vertices, shader, framebuffer);
+		rContext.rasterize(triang_vertices, ambient, framebuffer);
 	}
 
 	framebuffer.write_tga_file("framebuffer.tga");

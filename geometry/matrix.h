@@ -94,9 +94,9 @@ template<Size R, Size C> struct matrix {
 		for (Idx i{ 0 }; i < R; ++i) {
 			for (Idx j{ 0 }; j < C; ++j) {
 				double minorVal{ minorMatrix(i, j).determinant() };
-				int cofactor{ (i + j) % 2 == 0 ? 1 : -1 };
+				int signFactor{ (i + j) % 2 == 0 ? 1 : -1 };
 
-				adj[j][i] = minorVal * cofactor;
+				adj[j][i] = minorVal * signFactor; // store the cofactor Cji into adjoint (itself being transpose of cofactor matrix)
 			}
 		}
 

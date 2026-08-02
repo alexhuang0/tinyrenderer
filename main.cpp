@@ -39,7 +39,7 @@ struct PhongShader : IShader {
 
 	std::pair<bool, TGAColor> fragment(const vec3& bary_coords) const override {
 		// AMBIENT
-		constexpr TGAColor ambient{ 100 };
+		constexpr TGAColor ambient{ 0.3 * 255 };
 
 		// DIFFUSE
 		const vec3 normal{
@@ -51,16 +51,18 @@ struct PhongShader : IShader {
 		TGAColor diffuse{ (std::max(0., dot(normal, world_light_))) * 255 };
 
 		// SPECULAR
-		constexpr int shininess{ 1 };
+		constexpr int shininess{ 35 };
 		const vec3 reflected_ray{
+			normalize(
 			2. * dot(normal, world_light_) * normal - world_light_
+			)
 		};
 		TGAColor specular{ std::pow(
-			std::max(0., dot(normalize(Canvas::eye), reflected_ray)),
+			std::max(0., reflected_ray.z), // obj points to simply +z axis (in eye coords) since camera @ (0, 0). r.z since (0,0,1) (viewer dir)*(r.x, r.y, r.z) = r.z
 			shininess
 		) * 255 };
 
-		TGAColor final_color{ (ambient[0] + diffuse[0] + specular[0]) / 3 };
+		TGAColor final_color{ std::min(255., ambient[0] + 0.4 * diffuse[0] + 0.9 * specular[0]) };
 		//TGAColor final_color{ ambient };
 		//TGAColor final_color{ diffuse };
 		//TGAColor final_color{ specular };
@@ -83,7 +85,7 @@ int main(int argc, char** argv) {
 	TGAImage framebuffer(width, height, TGAImage::GRAYSCALE);
 	rContext.init_zbuffer();
 
-	const vec3 world_light{ 1, 0, 1 };
+	const vec3 world_light{ 1, 1, 1 };
 
 	PhongShader phong(model, rContext, world_light);
 

@@ -89,11 +89,11 @@ namespace Renderer {
 	}
 
 	// homogeneous coordinates stuff
-	matrix<4, 4> viewport(int x, int y) {
+	matrix<4, 4> viewport(int x, int y, int w, int h) {
 		return {
 			{
-				vec4{Canvas::width / 2., 0, 0, x + Canvas::width / 2.},
-				{0, Canvas::height / 2., 0, y + Canvas::height / 2.},
+				vec4{w / 2., 0, 0, x + w / 2.},
+				{0, h / 2., 0, y + h / 2.},
 				{0,0,1,0},
 				{0,0,0,1}
 			}
@@ -111,6 +111,7 @@ namespace Renderer {
 		};
 	}
 
+	// transform from world space to view space
 	matrix<4, 4> modelView(const vec<3>& eye, const vec<3>& center, const vec<3>& up) {
 		vec3 n{ normalize(eye - center) };
 		vec3 l{ normalize(cross3d(up, n)) };
@@ -131,6 +132,10 @@ namespace Renderer {
 		};
 
 		return basis_change_matrix_inverted * translateCenter;
+	}
+
+	matrix<4, 4> composeTransforms(const matrix<4, 4>& modelView, const matrix<4, 4>& perspective) {
+		return perspective * modelView;
 	}
 
 	std::tuple<int, int, int> const project(const vec3& vec) {

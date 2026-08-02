@@ -25,4 +25,9 @@ namespace Renderer {
 	void triangle(int ax, int ay, int az, int bx, int by, int bz, int cx, int cy, int cz,
 		std::vector<double>& zbuffer,
 		TGAImage& framebuffer, const TGAColor& color);
+
+	matrix<4, 4> viewport(int x, int y, int w, int h);
+	matrix<4, 4> perspective(double f);
+	matrix<4, 4> modelView(const vec<3>& eye, const vec<3>& center, const vec<3>& up);
+	matrix<4, 4> composeTransforms(const matrix<4, 4>& modelView, const matrix<4, 4>& perspective);
 };

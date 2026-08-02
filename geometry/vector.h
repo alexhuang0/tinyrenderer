@@ -41,6 +41,8 @@ template<> struct vec<4> {
 	};
 	double& operator[](Idx i) { assert(i >= 0 && i < 4); return data[i]; }
 	double operator[](Idx i) const { assert(i >= 0 && i < 4); return data[i]; }
+	vec<2> xy()  const { return { x, y }; }
+	vec<3> xyz() const { return { x, y, z }; }
 };
 
 using vec2 = vec<2>;
@@ -112,15 +114,15 @@ template<Size n> double dot(const vec<n>& lhs, const vec<n>& rhs) {
 // cross product
 inline vec3 cross3d(const vec3& a, const vec3& b) {
 	return {
-		(a.y * b.z - (a.z * b.y)),
-		-(a.x * b.z - (a.z * b.x)),
-		(a.x - b.y - (a.x * b.y))
+		(a.y * b.z - a.z * b.y),
+		-(a.x * b.z - a.z * b.x),
+		(a.x * b.y - a.y * b.x)
 	};
 }
 
 // norm, normalize
 template<Size n> double norm(const vec<n>& v) {
-	return std::sqrt(v * v);
+	return std::sqrt(dot(v, v));
 }
 
 template<Size n> vec<n> normalize(const vec<n>& v) {

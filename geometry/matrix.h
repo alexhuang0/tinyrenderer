@@ -17,7 +17,7 @@ template<Size R, Size C> struct matrix {
 	vec<C>& operator[](Idx i) { assert(i >= 0 && i < R); return data[i]; }
 	const vec<C>& operator[](Idx i) const { assert(i >= 0 && i < R); return data[i]; }
 
-	matrix<C, R> transpose() {
+	matrix<C, R> transpose() const {
 		matrix<C, R> res{};
 		for (Idx i{ 0 }; i < R; ++i) {
 			for (Idx j{ 0 }; j < C; ++j) {
@@ -51,6 +51,10 @@ template<Size R, Size C> struct matrix {
 					std::swap(matrix[rowIdx], matrix[pivot]);
 					++switches;
 				}
+			}
+
+			if (maxV < 1e-9) {
+				return 0.0;
 			}
 
 			// for every row below pivot, make val at pivot col 0

@@ -35,13 +35,11 @@ struct PhongShader : IShader {
 		vec3 v = model_.vert(face, vert); // cur vertex in obj coord
 		vec4 global_pos = rContext_.ModelView * vec4{ v.x, v.y, v.z, 1. };
 		tri_[vert] = global_pos.xyz();
-		return rContext_.Perspective * global_pos;
-	}
 
-	void normal(int iface, int inorm) {
-		vec3 norm{ model_.normal(iface, inorm) };
-		vec4 global_pos{ rContext_.ModelView * vec4{ norm.x, norm.y, norm.z, 0.} };
-		normals_[inorm] = global_pos.xyz();
+		vec3 norm{ model_.normal(face, vert) };
+		normals_[vert] = ((rContext_.ModelView.transpose().inverse()) * vec4 { norm.x, norm.y, norm.z, 0. }).xyz();
+
+		return rContext_.Perspective * global_pos;
 	}
 
 	std::pair<bool, TGAColor> fragment(const vec3& bary_coords) const override {
@@ -100,9 +98,6 @@ int main(int argc, char** argv) {
 			phong.vertex(f, 1),
 			phong.vertex(f, 2)
 		};
-		phong.normal(f, 0);
-		phong.normal(f, 1);
-		phong.normal(f, 2);
 
 		rContext.rasterize(triang_vertices, phong, framebuffer);
 	}

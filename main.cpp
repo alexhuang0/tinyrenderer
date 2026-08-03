@@ -19,6 +19,7 @@ struct PhongShader : IShader {
 	const Model& model_;
 	const RenderContext& rContext_;
 	vec3 tri_[3]{}; // triangle in eye space
+	std::array<vec3, 3> normals_{}; // tri vertices' normals in eye space
 	vec3 world_light_; // sun in eye space
 
 	PhongShader(const Model& m, const RenderContext& rc, const vec3& sun)
@@ -37,24 +38,28 @@ struct PhongShader : IShader {
 		return rContext_.Perspective * global_pos;
 	}
 
+	void normal(int iface, int inorm) {
+		vec3 norm{ model_.normal(iface, inorm) };
+		vec4 global_pos{ rContext_.ModelView * vec4{ norm.x, norm.y, norm.z, 0.} };
+		normals_[inorm] = global_pos.xyz();
+	}
+
 	std::pair<bool, TGAColor> fragment(const vec3& bary_coords) const override {
+		// SMOOTH SHADING
+		matrix<3, 3> ABC{ normals_ };
+		vec3 weighted_normal{ normalize(bary_coords * ABC) };
+
 		// AMBIENT
 		constexpr TGAColor ambient{ 0.3 * 255 };
 
 		// DIFFUSE
-		const vec3 normal{
-			normalize(
-				cross3d(tri_[1] - tri_[0], tri_[2] - tri_[0])
-				// AB cross AC
-			)
-		};
-		TGAColor diffuse{ (std::max(0., dot(normal, world_light_))) * 255 };
+		TGAColor diffuse{ (std::max(0., dot(weighted_normal, world_light_))) * 255 };
 
 		// SPECULAR
 		constexpr int shininess{ 35 };
 		const vec3 reflected_ray{
 			normalize(
-			2. * dot(normal, world_light_) * normal - world_light_
+			2. * dot(weighted_normal, world_light_) * weighted_normal - world_light_
 			)
 		};
 		TGAColor specular{ std::pow(
@@ -95,6 +100,9 @@ int main(int argc, char** argv) {
 			phong.vertex(f, 1),
 			phong.vertex(f, 2)
 		};
+		phong.normal(f, 0);
+		phong.normal(f, 1);
+		phong.normal(f, 2);
 
 		rContext.rasterize(triang_vertices, phong, framebuffer);
 	}

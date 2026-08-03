@@ -42,19 +42,29 @@ Model::Model(const std::string& filename) {
 				Model::verts.push_back({ x, y, z });
 			}
 		}
+		else if (curLine.compare(0, 2, "vn") == 0) {
+			double x{}, y{}, z{};
+
+			if (std::sscanf(curLine.c_str(), "vn %lf %lf %lf", &x, &y, &z) == 3) {
+				Model::norms.push_back({ x, y, z });
+			}
+		}
 		else if (curLine.compare(0, 2, "f ") == 0) {
 			// f 1193/1240/1193 1180/1227/1180 1179/1226/1179
 			std::string vCluster{}; // "v/vt/vn"
 
-			int i1{};
-			int i2{};
-			int i3{};
+			int v1{}, v2{}, v3{};
+			int vn1{}, vn2{}, vn3{};
 			int tmp{};
 			if (std::sscanf(curLine.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d"
-				, &i1, &tmp, &tmp, &i2, &tmp, &tmp, &i3, &tmp, &tmp) == 9) {
-				Model::facet_vrt.push_back(static_cast<size_t>(i1) - 1);
-				Model::facet_vrt.push_back(static_cast<size_t>(i2) - 1);
-				Model::facet_vrt.push_back(static_cast<size_t>(i3) - 1);
+				, &v1, &tmp, &vn1, &v2, &tmp, &vn2, &v3, &tmp, &vn3) == 9) {
+				Model::facet_vrt.push_back(static_cast<size_t>(v1) - 1);
+				Model::facet_vrt.push_back(static_cast<size_t>(v2) - 1);
+				Model::facet_vrt.push_back(static_cast<size_t>(v3) - 1);
+
+				Model::facet_nrm.push_back(static_cast<size_t>(vn1) - 1);
+				Model::facet_nrm.push_back(static_cast<size_t>(vn2) - 1);
+				Model::facet_nrm.push_back(static_cast<size_t>(vn3) - 1);
 			}
 		}
 	}

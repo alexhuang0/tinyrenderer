@@ -154,11 +154,13 @@ vec<r> operator*(const matrix<r, c>& m, const vec<c>& v) {
 }
 
 template<Size r, Size c>
-vec<r> operator*(const vec<c>& v, const matrix<r, c>& m) {
-	vec<r> res{};
+vec<c> operator*(const vec<r>& v, const matrix<r, c>& m) {
+	vec<c> res{};
 
-	for (Idx i{ 0 }; i < r; ++i) {
-		res[i] = dot(m[i], v);
+	for (Idx j{ 0 }; j < c; ++j) {
+		for (Idx i{ 0 }; i < r; ++i) {
+			res[j] += m[i][j] * v[i];
+		}
 	}
 	return res;
 }

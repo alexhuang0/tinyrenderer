@@ -11,6 +11,10 @@ vec3 Model::vert(const std::size_t iface, const std::size_t nthvert) const {
 	return verts[facet_vrt[iface * 3 + nthvert]];
 }
 
+vec3 Model::normal(const std::size_t iface, const std::size_t nthnorm) const {
+	return norms[facet_nrm[iface * 3 + nthnorm]];
+}
+
 Model::Model(const std::string& filename) {
 	std::ifstream objFile(filename);
 

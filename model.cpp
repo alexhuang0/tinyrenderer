@@ -30,8 +30,7 @@ vec4 Model::normal_tex(const vec2& uv) const {
 		}) * 2. / 255. - vec4{ 1, 1, 1, 0 };
 	;
 }
-vec2 Model::uv_coords(const int iface, const int nthvert) const {
-	// uv coords of triangle corners
+vec2 Model::uv_coords(const std::size_t iface, const std::size_t nthvert) const {
 	return tex[facet_tex[iface * 3 + nthvert]];
 }
 
@@ -80,7 +79,7 @@ Model::Model(const std::string& modelName) {
 		else if (curLine.compare(0, 2, "vt") == 0) {
 			double x{}, y{}, tmp{};
 
-			if (std::scanf(curLine.c_str(), "vt, %lf %lf %lf", &x, &y, &tmp) == 3) {
+			if (std::sscanf(curLine.c_str(), "vt %lf %lf %lf", &x, &y, &tmp) == 3) {
 				Model::tex.push_back({ x, y });
 			}
 		}
@@ -101,13 +100,16 @@ Model::Model(const std::string& modelName) {
 				Model::facet_nrm.push_back(static_cast<size_t>(vn2) - 1);
 				Model::facet_nrm.push_back(static_cast<size_t>(vn3) - 1);
 
-				Model::facet_nrm.push_back(static_cast<size_t>(vt1) - 1);
-				Model::facet_nrm.push_back(static_cast<size_t>(vt2) - 1);
-				Model::facet_nrm.push_back(static_cast<size_t>(vt3) - 1);
+				Model::facet_tex.push_back(static_cast<size_t>(vt1) - 1);
+				Model::facet_tex.push_back(static_cast<size_t>(vt2) - 1);
+				Model::facet_tex.push_back(static_cast<size_t>(vt3) - 1);
 			}
 		}
 	}
 
-	std::cout << "read " << nverts() << " vertices and " << nfaces() << " faces\n";
+	std::cout << "read " << nverts() << " vertices, "
+		<< std::size(facet_nrm) << " vertex normals, "
+		<< std::size(facet_tex) << " texture coords, and "
+		<< nfaces() << " faces\n";
 	objFile.close();
 }

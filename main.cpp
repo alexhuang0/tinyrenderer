@@ -31,13 +31,13 @@ struct PhongShader : IShader {
 		world_light_ = normalize(light_4d.xyz());
 	}
 
-	vec4 vertex(int face, int vert) {
-		vec3 v = model_.vert(face, vert); // cur vertex in obj coord
+	vec4 vertex(int iface, int ivert) {
+		vec3 v = model_.vert(iface, ivert); // cur vertex in obj coord
 		vec4 global_pos = rContext_.ModelView * vec4{ v.x, v.y, v.z, 1. };
-		tri_[vert] = global_pos.xyz();
+		tri_[ivert] = global_pos.xyz();
 
-		vec3 norm{ model_.normal(face, vert) };
-		normals_[vert] = ((rContext_.ModelView.transpose().inverse()) * vec4 { norm.x, norm.y, norm.z, 0. }).xyz();
+		vec4 norm{ model_.normal_tex(model_.uv_coords(iface, ivert)) };
+		normals_[ivert] = ((rContext_.ModelView.transpose().inverse()) * norm).xyz();
 
 		return rContext_.Perspective * global_pos;
 	}

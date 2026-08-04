@@ -20,9 +20,9 @@ struct PhongShader : IShader {
 	const RenderContext& rContext_;
 
 	vec4 world_light_; // sun in eye space
-	vec3 tri_[3]{}; // triangle in eye space
-	std::array<vec3, 3> normals_{}; // tri vertices' normals in eye space
-	std::array<vec2, 3> varying_uv_{};
+	vec4 tri_[3]{}; // triangle in eye space
+	std::array<vec4, 3> varying_nrms_{}; // tri vertices' normals in eye space
+	std::array<vec2, 3> varying_uv_{}; // tri uv coordinates, written by vertex shader, read by fragment shader
 
 	PhongShader(const Model& m, const RenderContext& rc, const vec4& sun)
 		: model_{ m }
@@ -35,10 +35,11 @@ struct PhongShader : IShader {
 
 	vec4 vertex(int iface, int ivert) {
 		vec4 v = model_.vert(iface, ivert); // cur vertex in obj coord
-		vec4 global_pos = rContext_.ModelView * vec4{ v.x, v.y, v.z, 1. };
-		tri_[ivert] = global_pos.xyz();
+		vec4 global_pos = rContext_.ModelView * v;
 
-		normals_[ivert] = (rContext_.ModelView.inverse().transpose() * model_.normal(iface, ivert)).xyz();
+		tri_[ivert] = global_pos;
+
+		varying_nrms_[ivert] = rContext_.ModelView.inverse().transpose() * model_.normal(iface, ivert);
 
 		vec2 uvCoord{ model_.uv_coords(iface, ivert) };
 		varying_uv_[ivert] = uvCoord;
@@ -50,20 +51,20 @@ struct PhongShader : IShader {
 		matrix<3, 2> ABC{ varying_uv_ };
 		vec2 uv_coords{ bary_coords * ABC };
 
-		matrix<3, 2> tri_edges{ matrix<2, 3>{ tri_[1] - tri_[0], tri_[2] - tri_[0] }.transpose() };
-		matrix<2, 2> uv_edges{
-			matrix<2, 2>{varying_uv_[1] - varying_uv_[0], varying_uv_[2] - varying_uv_[0]}.transpose()
+		matrix<2, 4 > tri_edges{ tri_[1] - tri_[0], tri_[2] - tri_[0] };
+		matrix<2, 2> uv_edges{ varying_uv_[1] - varying_uv_[0], varying_uv_[2] - varying_uv_[0] };
+
+		matrix<2, 4> tan_bitan{ uv_edges.inverse() * tri_edges };
+		vec4 weighted_normal{ normalize(bary_coords * matrix<3, 4>{varying_nrms_}) };
+		matrix<4, 4> tan_space_basis{
+			normalize(tan_bitan[0]),
+			normalize(tan_bitan[1]),
+			weighted_normal,
+			{ 0, 0, 0, 1 } // Darboux frame ??
 		};
 
-		matrix<3, 2> tan_bitan{ tri_edges * uv_edges.inverse() };
-		vec3 interpolated_normal{ matrix<3, 3>{normals_} *bary_coords };
-		matrix<3, 3> tang_space_basis{};
-		for (int i : {0, 1, 2}) {
-			tang_space_basis[i] = { tan_bitan[i][0], tan_bitan[i][1], interpolated_normal[i] };
-		}
-
 		// NORMAL MAP TEXTURE
-		vec4 weighted_normal{ normalize(rContext_.ModelView.inverse().transpose() * model_.normal_tex(uv_coords)) };
+		vec4 normal_tan_basis{ normalize(model_.normal_tex(uv_coords) * tan_space_basis) };
 		// DIFF MAP
 		TGAColor diffMap{ model_.diff(uv_coords) };
 		// SPEC SHADER
@@ -71,25 +72,28 @@ struct PhongShader : IShader {
 
 		// LIGHTING
 		// AMBIENT
-		constexpr double ambient{ 0.3 };
+		constexpr double ambient{ 0.4 };
 
 		// DIFFUSE
-		double diffuse{ (std::max(0., dot(weighted_normal, world_light_))) };
+		double diffuse{ (std::max(0., dot(normal_tan_basis, world_light_))) };
 
 		// SPECULAR
+		constexpr int shininess{ 35 };
 		const vec4 reflected_ray{
 			normalize(
-			2. * dot(weighted_normal, world_light_) * weighted_normal - world_light_
+			2. * dot(normal_tan_basis, world_light_) * normal_tan_basis - world_light_
 			)
 		};
-		double specular{ std::pow(
-			std::max(0., reflected_ray.z), // obj points to simply +z axis (in eye coords) since camera @ (0, 0). r.z since (0,0,1) (viewer dir)*(r.x, r.y, r.z) = r.z
-			specIntensity
+		double specular{
+			model_.spec(uv_coords)
+			// obj points to simply +z axis (in eye coords) since camera @ (0, 0). r.z since (0,0,1) (viewer dir)*(r.x, r.y, r.z) = r.z
+			* std::pow(std::max(0., reflected_ray.z),
+			shininess
 		) };
 
 		TGAColor final_FragColor{ diffMap };
 		for (int i : {0, 1, 2}) {
-			final_FragColor[i] *= std::min(1., ambient + 0.7 * diffuse + 0.4 * specular);
+			final_FragColor[i] *= std::min(1., (ambient + 1 * diffuse + 3 * specular));
 		}
 
 		return { false, final_FragColor };

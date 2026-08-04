@@ -6,6 +6,9 @@
 
 struct IShader {
 	virtual std::pair<bool, TGAColor> fragment(const vec3& bary_coords) const = 0;
+	static TGAColor sample2D(const TGAImage& img, const vec2& uv) {
+		return img.get(uv.x * img.width(), uv.y * img.height());
+	}
 };
 
 using Triangle = std::array<vec4, 3>;

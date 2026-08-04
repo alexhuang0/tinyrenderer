@@ -28,5 +28,5 @@ public:
 	vec4 normal_tex(const vec2& uv) const; // normal vector from normal map texture (normalized [-1..1])
 
 	TGAColor diff(const vec2& uv) const;
-	double spec(const vec2& uv) const; // returns spec intensity
+	double spec(const vec2& uv) const; // returns spec intensity (normalized [0, 1])
 };

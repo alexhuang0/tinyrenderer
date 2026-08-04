@@ -76,10 +76,19 @@ void RenderContext::rasterize(const Triangle& clip, const IShader& shader, TGAIm
 	double bbminY{ std::min(screen[0].y, std::min(screen[1].y, screen[2].y)) };
 	double bbmaxY{ std::max(screen[0].y, std::max(screen[1].y, screen[2].y)) };
 
+	matrix<3, 3> ABC_inv_transp{ ABC.inverse().transpose() };
+
+	// OpenMP requires the canonical loop form (init with '=', not brace-init),
+	// and the bounds must be loop-invariant, so hoist them out.
+	const int xlo = std::max<int>(bbminX, 0);
+	const int xhi = std::min<int>(bbmaxX, framebuffer.width() - 1);
+	const int ylo = std::max<int>(bbminY, 0);
+	const int yhi = std::min<int>(bbmaxY, framebuffer.height() - 1);
+
 #pragma omp parallel for
-	for (int x{ std::max<int>(bbminX, 0) }; x <= std::min<int>(bbmaxX, framebuffer.width() - 1); ++x) {
-		for (int y{ std::max<int>(bbminY, 0) }; y <= std::min<int>(bbmaxY, framebuffer.height() - 1); ++y) {
-			vec3 bary_coords{ ABC.inverse().transpose() * vec3 { static_cast<double>(x), static_cast<double>(y), 1. } };
+	for (int x = xlo; x <= xhi; ++x) {
+		for (int y = ylo; y <= yhi; ++y) {
+			vec3 bary_coords{ ABC_inv_transp * vec3 { static_cast<double>(x), static_cast<double>(y), 1. } };
 
 			// neg bary coords => pixel outside of triangle
 			if (bary_coords.x < 0 || bary_coords.y < 0 || bary_coords.z < 0) continue;

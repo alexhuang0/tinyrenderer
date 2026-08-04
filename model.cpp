@@ -38,7 +38,7 @@ TGAColor Model::diff(const vec2& uv) const {
 	return diffmap.get(uv.x * diffmap.width(), uv.y * diffmap.height());
 }
 double Model::spec(const vec2& uv) const {
-	return specmap.get(uv.x * specmap.width(), uv.y * specmap.height())[0];
+	return specmap.get(uv.x * specmap.width(), uv.y * specmap.height())[0] / 255.;
 }
 
 Model::Model(const std::string& modelName) {
@@ -67,14 +67,14 @@ Model::Model(const std::string& modelName) {
 			double z{};
 
 			if (std::sscanf(curLine.c_str(), "v %lf %lf %lf", &x, &y, &z) == 3) {
-				Model::verts.push_back({ x, y, z });
+				Model::verts.push_back({ x, y, z, 1. });
 			}
 		}
 		else if (curLine.compare(0, 2, "vn") == 0) {
 			double x{}, y{}, z{};
 
 			if (std::sscanf(curLine.c_str(), "vn %lf %lf %lf", &x, &y, &z) == 3) {
-				Model::norms.push_back({ x, y, z });
+				Model::norms.push_back({ x, y, z, 0. });
 			}
 		}
 		else if (curLine.compare(0, 2, "vt") == 0) {
@@ -116,7 +116,7 @@ Model::Model(const std::string& modelName) {
 		}
 		};
 
-	load_texture("nm", normalmap);
+	load_texture("nm_tangent", normalmap);
 	load_texture("diffuse", diffmap);
 	load_texture("spec", specmap);
 

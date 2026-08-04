@@ -1,2 +1,36 @@
-framebuffer.tga
+# Build output
+build/
+out/
+x64/
+tinyrenderer/x64/
+
+# Visual Studio
 .vs/
+*.ilk
+*.pdb
+*.obj
+*.exe
+*.lib
+*.exp
+*.idb
+*.tlog/
+*.log
+*.recipe
+*.FileListAbsolute.txt
+*.Build.CppClean.log
+*.sln
+*.vcxproj*
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+Makefile
+CMakeSettings.json
+
+# Renderer output
+framebuffer.tga
+
+# Junk
+nul

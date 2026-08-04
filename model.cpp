@@ -37,12 +37,6 @@ vec2 Model::uv_coords(const std::size_t iface, const std::size_t nthvert) const 
 Model::Model(const std::string& modelName) {
 	fs::path dir = fs::path("./obj") / modelName;
 
-	// load texture into normalmap field
-	fs::path tex_path = dir / (modelName + "_nm.tga");
-	if (!normalmap.read_tga_file(tex_path.string())) {
-		std::perror("Error while reading tga texture normal map");
-	}
-
 	fs::path obj_path = dir / (modelName + ".obj");
 	std::ifstream objFile(obj_path);
 	if (objFile.fail()) {
@@ -107,9 +101,21 @@ Model::Model(const std::string& modelName) {
 		}
 	}
 
+	// TGA texture loading
+	auto load_texture = [&modelName, &dir](const std::string& type, TGAImage& img) {
+		fs::path tex_path = dir / (modelName + "_" + type + ".tga");
+		if (!img.read_tga_file(tex_path.string())) {
+			std::cerr << "Error reading " << type << "texture";
+		}
+		};
+
+	load_texture("nm", normalmap);
+	load_texture("diff", diffmap);
+
 	std::cout << "read " << nverts() << " vertices, "
 		<< nnorms() << " vertex normals, "
 		<< ntex() << " texture coords, and "
 		<< nfaces() << " faces\n";
+
 	objFile.close();
 }

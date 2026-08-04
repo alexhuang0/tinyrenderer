@@ -11,6 +11,7 @@ class Model {
 	std::vector<std::size_t> facet_nrm{}; // per-triangle normal idx in norms (taken from vn x y z)
 	std::vector<std::size_t> facet_tex{}; // per-triangle tex idx in tex (uv tga map)
 	TGAImage normalmap{};
+	TGAImage diffmap{}; // differential shader (color)
 
 public:
 	Model(const std::string& filename);

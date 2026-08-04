@@ -43,15 +43,17 @@ struct PhongShader : IShader {
 	}
 
 	std::pair<bool, TGAColor> fragment(const vec3& bary_coords) const override {
+		TGAColor final_FragColor{ 255, 255, 255, 255 };
+
 		// SMOOTH SHADING
 		matrix<3, 3> ABC{ normals_ };
 		vec3 weighted_normal{ normalize(bary_coords * ABC) };
 
 		// AMBIENT
-		constexpr TGAColor ambient{ 0.3 * 255 };
+		constexpr double ambient{ 0.3 };
 
 		// DIFFUSE
-		TGAColor diffuse{ (std::max(0., dot(weighted_normal, world_light_))) * 255 };
+		double diffuse{ (std::max(0., dot(weighted_normal, world_light_))) };
 
 		// SPECULAR
 		constexpr int shininess{ 35 };
@@ -60,24 +62,24 @@ struct PhongShader : IShader {
 			2. * dot(weighted_normal, world_light_) * weighted_normal - world_light_
 			)
 		};
-		TGAColor specular{ std::pow(
+		double specular{ std::pow(
 			std::max(0., reflected_ray.z), // obj points to simply +z axis (in eye coords) since camera @ (0, 0). r.z since (0,0,1) (viewer dir)*(r.x, r.y, r.z) = r.z
 			shininess
-		) * 255 };
+		) };
 
-		TGAColor final_color{ std::min(255., ambient[0] + 0.4 * diffuse[0] + 0.9 * specular[0]) };
-		//TGAColor final_color{ ambient };
-		//TGAColor final_color{ diffuse };
-		//TGAColor final_color{ specular };
+		for (int i : {0, 1, 2}) {
+			final_FragColor[i] *= std::min(1., ambient + 0.4 * diffuse + 0.9 * specular);
+		}
 
-		return { false, final_color };
+		return { false, final_FragColor };
 	}
 };
 
 int main(int argc, char** argv) {
 	using namespace Canvas;
 
-	Model model(R"(C:\Users\Alex\Documents\Alex Stuff\Programming\c++\tinyrenderer\obj\african_head\african_head.obj)");
+
+	Model model("african_head");
 
 	RenderContext rContext{};
 	rContext.lookat(eye, center, up);
@@ -85,7 +87,7 @@ int main(int argc, char** argv) {
 	rContext.init_viewport(width / 16, height / 16, width * 7 / 8, height * 7 / 8);
 	rContext.composeTransforms();
 
-	TGAImage framebuffer(width, height, TGAImage::GRAYSCALE);
+	TGAImage framebuffer(width, height, TGAImage::RGB);
 	rContext.init_zbuffer();
 
 	const vec3 world_light{ 1, 1, 1 };

@@ -1,6 +1,10 @@
 #include "model.h"
+#include <filesystem>
 #include <fstream>
 #include <sstream>
+#include "canvas.h"
+
+namespace fs = std::filesystem;
 
 vec3 Model::vert(const std::size_t i) const {
 	// 0 <= i < nverts()
@@ -15,11 +19,27 @@ vec3 Model::normal(const std::size_t iface, const std::size_t nthnorm) const {
 	return norms[facet_nrm[iface * 3 + nthnorm]];
 }
 
-Model::Model(const std::string& filename) {
-	std::ifstream objFile(filename);
+vec4 Model::normal_tex(const vec2& uv) const {
+	TGAColor c{ normalmap.get(uv.x * Canvas::width, uv.y * Canvas::height) };
+	// map [0, 255] -> [-1, 1]
+	return (vec4{
+			static_cast<double>(c[2]),
+			static_cast<double>(c[1]),
+			static_cast<double>(c[0]),
+			0.,
+		}) * 2. / 255. - vec4{ 1, 1, 1, 0 };
+	;
+}
+vec2 Model::uv_coords(const int iface, const int nthvert) const {
+	// uv coords of triangle corners
+	return tex[facet_tex[iface * 3 + nthvert]];
+}
 
+Model::Model(const std::string& modelName) {
+	fs::path obj_path = fs::path("./obj") / modelName / (modelName + ".obj");
+	std::ifstream objFile(obj_path);
 	if (objFile.fail()) {
-		// This will print the exact reason (e.g., "No such file or directory")
+		// print the exact reason (eg "No such file or directory")
 		std::perror("File open failed");
 	}
 
@@ -49,15 +69,22 @@ Model::Model(const std::string& filename) {
 				Model::norms.push_back({ x, y, z });
 			}
 		}
+		else if (curLine.compare(0, 2, "vt") == 0) {
+			double x{}, y{}, tmp{};
+
+			if (std::scanf(curLine.c_str(), "vt, %lf %lf %lf", &x, &y, &tmp) == 3) {
+				Model::tex.push_back({ x, y });
+			}
+		}
 		else if (curLine.compare(0, 2, "f ") == 0) {
 			// f 1193/1240/1193 1180/1227/1180 1179/1226/1179
 			std::string vCluster{}; // "v/vt/vn"
 
 			int v1{}, v2{}, v3{};
 			int vn1{}, vn2{}, vn3{};
-			int tmp{};
+			int vt1{}, vt2{}, vt3{};
 			if (std::sscanf(curLine.c_str(), "f %d/%d/%d %d/%d/%d %d/%d/%d"
-				, &v1, &tmp, &vn1, &v2, &tmp, &vn2, &v3, &tmp, &vn3) == 9) {
+				, &v1, &vt1, &vn1, &v2, &vt2, &vn2, &v3, &vt3, &vn3) == 9) {
 				Model::facet_vrt.push_back(static_cast<size_t>(v1) - 1);
 				Model::facet_vrt.push_back(static_cast<size_t>(v2) - 1);
 				Model::facet_vrt.push_back(static_cast<size_t>(v3) - 1);
@@ -65,6 +92,10 @@ Model::Model(const std::string& filename) {
 				Model::facet_nrm.push_back(static_cast<size_t>(vn1) - 1);
 				Model::facet_nrm.push_back(static_cast<size_t>(vn2) - 1);
 				Model::facet_nrm.push_back(static_cast<size_t>(vn3) - 1);
+
+				Model::facet_nrm.push_back(static_cast<size_t>(vt1) - 1);
+				Model::facet_nrm.push_back(static_cast<size_t>(vt2) - 1);
+				Model::facet_nrm.push_back(static_cast<size_t>(vt3) - 1);
 			}
 		}
 	}

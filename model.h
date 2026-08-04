@@ -1,13 +1,16 @@
 #pragma once
 #include "geometry/geometry.h"
 #include <vector>
-#include <tuple>
+#include "tgaimage.h"
 
 class Model {
 	std::vector<vec3> verts{}; // array of vertices
-	std::vector<vec3> norms{};
+	std::vector<vec3> norms{}; // array of normal vectors
+	std::vector<vec2> tex{}; // array of tex coords
 	std::vector<std::size_t> facet_vrt{}; // per-triangle idx in above arrays
-	std::vector<std::size_t> facet_nrm{}; // per-triangle normal idx in norms
+	std::vector<std::size_t> facet_nrm{}; // per-triangle normal idx in norms (taken from vn x y z)
+	std::vector<std::size_t> facet_tex{}; // normal map texture for each triangle
+	TGAImage normalmap{};
 
 public:
 	Model(const std::string& filename);
@@ -15,5 +18,7 @@ public:
 	constexpr std::size_t nfaces() const { return facet_vrt.size() / 3; } // num of faces
 	vec3 vert(const std::size_t i) const; // 0 <= i < nverts()
 	vec3 vert(const std::size_t iface, const std::size_t nthvert) const; // 0 <= iface < nfaces(), 0 <= nthvert < 3
-	vec3 normal(const std::size_t iface, const std::size_t nthnorm) const;
+	vec3 normal(const std::size_t iface, const std::size_t nthnorm) const; // normal coming from "vn x y z"
+	vec4 normal_tex(const vec2& uv) const; // normal vector from normal map texture
+	vec2 uv_coords(const int iface, const int nthvert) const; // uv coords of triangle corners
 };

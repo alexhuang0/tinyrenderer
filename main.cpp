@@ -20,15 +20,16 @@ struct PhongShader : IShader {
 	const RenderContext& rContext_;
 	vec3 tri_[3]{}; // triangle in eye space
 	std::array<vec3, 3> normals_{}; // tri vertices' normals in eye space
-	vec3 world_light_; // sun in eye space
+	vec4 world_light_; // sun in eye space
+	std::array<vec2, 3> varying_uv_{};
 
-	PhongShader(const Model& m, const RenderContext& rc, const vec3& sun)
+	PhongShader(const Model& m, const RenderContext& rc, const vec4& sun)
 		: model_{ m }
 		, rContext_{ rc }
 	{
 		// w = 0. bc its a vector
 		vec4 light_4d{ rContext_.ModelView * vec4{sun.x, sun.y, sun.z, 0.} };
-		world_light_ = normalize(light_4d.xyz());
+		world_light_ = normalize(light_4d);
 	}
 
 	vec4 vertex(int iface, int ivert) {
@@ -36,8 +37,8 @@ struct PhongShader : IShader {
 		vec4 global_pos = rContext_.ModelView * vec4{ v.x, v.y, v.z, 1. };
 		tri_[ivert] = global_pos.xyz();
 
-		vec4 norm{ model_.normal_tex(model_.uv_coords(iface, ivert)) };
-		normals_[ivert] = ((rContext_.ModelView.transpose().inverse()) * norm).xyz();
+		vec2 uvCoord{ model_.uv_coords(iface, ivert) };
+		varying_uv_[ivert] = uvCoord;
 
 		return rContext_.Perspective * global_pos;
 	}
@@ -45,9 +46,10 @@ struct PhongShader : IShader {
 	std::pair<bool, TGAColor> fragment(const vec3& bary_coords) const override {
 		TGAColor final_FragColor{ 255, 255, 255, 255 };
 
-		// SMOOTH SHADING
-		matrix<3, 3> ABC{ normals_ };
-		vec3 weighted_normal{ normalize(bary_coords * ABC) };
+		// NORMAL MAP TEXTURE
+		matrix<3, 2> ABC{ varying_uv_ };
+		vec2 uv_normal_coords{ bary_coords * ABC };
+		vec4 weighted_normal{ normalize(rContext_.ModelView.inverse().transpose() * model_.normal_tex(uv_normal_coords)) };
 
 		// AMBIENT
 		constexpr double ambient{ 0.3 };
@@ -57,7 +59,7 @@ struct PhongShader : IShader {
 
 		// SPECULAR
 		constexpr int shininess{ 35 };
-		const vec3 reflected_ray{
+		const vec4 reflected_ray{
 			normalize(
 			2. * dot(weighted_normal, world_light_) * weighted_normal - world_light_
 			)
@@ -90,7 +92,7 @@ int main(int argc, char** argv) {
 	TGAImage framebuffer(width, height, TGAImage::RGB);
 	rContext.init_zbuffer();
 
-	const vec3 world_light{ 1, 1, 1 };
+	const vec4 world_light{ 1, 1, 1, 0 };
 
 	PhongShader phong(model, rContext, world_light);
 

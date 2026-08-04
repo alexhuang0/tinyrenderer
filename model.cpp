@@ -20,7 +20,7 @@ vec3 Model::normal(const std::size_t iface, const std::size_t nthnorm) const {
 }
 
 vec4 Model::normal_tex(const vec2& uv) const {
-	TGAColor c{ normalmap.get(uv.x * Canvas::width, uv.y * Canvas::height) };
+	TGAColor c{ normalmap.get(uv.x * normalmap.width(), uv.y * normalmap.height()) };
 	// map [0, 255] -> [-1, 1]
 	return (vec4{
 			static_cast<double>(c[2]),
@@ -80,7 +80,7 @@ Model::Model(const std::string& modelName) {
 			double x{}, y{}, tmp{};
 
 			if (std::sscanf(curLine.c_str(), "vt %lf %lf %lf", &x, &y, &tmp) == 3) {
-				Model::tex.push_back({ x, y });
+				Model::tex.push_back({ x, 1 - y });
 			}
 		}
 		else if (curLine.compare(0, 2, "f ") == 0) {
@@ -108,8 +108,8 @@ Model::Model(const std::string& modelName) {
 	}
 
 	std::cout << "read " << nverts() << " vertices, "
-		<< std::size(facet_nrm) << " vertex normals, "
-		<< std::size(facet_tex) << " texture coords, and "
+		<< nnorms() << " vertex normals, "
+		<< ntex() << " texture coords, and "
 		<< nfaces() << " faces\n";
 	objFile.close();
 }

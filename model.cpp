@@ -19,6 +19,9 @@ vec3 Model::normal(const std::size_t iface, const std::size_t nthnorm) const {
 	return norms[facet_nrm[iface * 3 + nthnorm]];
 }
 
+vec2 Model::uv_coords(const std::size_t iface, const std::size_t nthvert) const {
+	return tex[facet_tex[iface * 3 + nthvert]];
+}
 vec4 Model::normal_tex(const vec2& uv) const {
 	TGAColor c{ normalmap.get(uv.x * normalmap.width(), uv.y * normalmap.height()) };
 	// map [0, 255] -> [-1, 1]
@@ -30,8 +33,9 @@ vec4 Model::normal_tex(const vec2& uv) const {
 		}) * 2. / 255. - vec4{ 1, 1, 1, 0 };
 	;
 }
-vec2 Model::uv_coords(const std::size_t iface, const std::size_t nthvert) const {
-	return tex[facet_tex[iface * 3 + nthvert]];
+
+TGAColor Model::diff(const vec2& diff) const {
+	return diffmap.get(diff.x * diffmap.width(), diff.y * diffmap.height());
 }
 
 Model::Model(const std::string& modelName) {
@@ -110,7 +114,7 @@ Model::Model(const std::string& modelName) {
 		};
 
 	load_texture("nm", normalmap);
-	load_texture("diff", diffmap);
+	load_texture("diffuse", diffmap);
 
 	std::cout << "read " << nverts() << " vertices, "
 		<< nnorms() << " vertex normals, "

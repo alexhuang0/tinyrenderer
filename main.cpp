@@ -44,12 +44,13 @@ struct PhongShader : IShader {
 	}
 
 	std::pair<bool, TGAColor> fragment(const vec3& bary_coords) const override {
-		TGAColor final_FragColor{ 255, 255, 255, 255 };
-
 		// NORMAL MAP TEXTURE
 		matrix<3, 2> ABC{ varying_uv_ };
 		vec2 uv_normal_coords{ bary_coords * ABC };
 		vec4 weighted_normal{ normalize(rContext_.ModelView.inverse().transpose() * model_.normal_tex(uv_normal_coords)) };
+
+		// DIFF MAP
+		TGAColor final_FragColor{ model_.diff(uv_normal_coords) };
 
 		// AMBIENT
 		constexpr double ambient{ 0.3 };

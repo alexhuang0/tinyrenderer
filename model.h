@@ -11,7 +11,7 @@ class Model {
 	std::vector<std::size_t> facet_nrm{}; // per-triangle normal idx in norms (taken from vn x y z)
 	std::vector<std::size_t> facet_tex{}; // per-triangle tex idx in tex (uv tga map)
 	TGAImage normalmap{};
-	TGAImage diffmap{}; // differential shader (color)
+	TGAImage diffmap{}; // diffuse shader (matte color)
 
 public:
 	Model(const std::string& filename);
@@ -21,7 +21,10 @@ public:
 	constexpr std::size_t nfaces() const { return facet_vrt.size() / 3; } // num of faces
 	vec3 vert(const std::size_t i) const; // 0 <= i < nverts()
 	vec3 vert(const std::size_t iface, const std::size_t nthvert) const; // 0 <= iface < nfaces(), 0 <= nthvert < 3
+
 	vec3 normal(const std::size_t iface, const std::size_t nthnorm) const; // normal coming from "vn x y z"
-	vec4 normal_tex(const vec2& uv) const; // normal vector from normal map texture (normalized [-1..1])
 	vec2 uv_coords(const std::size_t iface, const std::size_t nthvert) const; // uv coords on a TGA normalmap for a given triangle's vertex
+	vec4 normal_tex(const vec2& uv) const; // normal vector from normal map texture (normalized [-1..1])
+
+	TGAColor diff(const vec2& diff) const;
 };

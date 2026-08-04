@@ -6,16 +6,16 @@
 
 namespace fs = std::filesystem;
 
-vec3 Model::vert(const std::size_t i) const {
+vec4 Model::vert(const std::size_t i) const {
 	// 0 <= i < nverts()
 	return verts[i];
 }
-vec3 Model::vert(const std::size_t iface, const std::size_t nthvert) const {
+vec4 Model::vert(const std::size_t iface, const std::size_t nthvert) const {
 	// 0 <= iface < nfaces(), 0 <= nthvert < 3
 	return verts[facet_vrt[iface * 3 + nthvert]];
 }
 
-vec3 Model::normal(const std::size_t iface, const std::size_t nthnorm) const {
+vec4 Model::normal(const std::size_t iface, const std::size_t nthnorm) const {
 	return norms[facet_nrm[iface * 3 + nthnorm]];
 }
 

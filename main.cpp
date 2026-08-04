@@ -18,9 +18,10 @@
 struct PhongShader : IShader {
 	const Model& model_;
 	const RenderContext& rContext_;
+
+	vec4 world_light_; // sun in eye space
 	vec3 tri_[3]{}; // triangle in eye space
 	std::array<vec3, 3> normals_{}; // tri vertices' normals in eye space
-	vec4 world_light_; // sun in eye space
 	std::array<vec2, 3> varying_uv_{};
 
 	PhongShader(const Model& m, const RenderContext& rc, const vec4& sun)
@@ -28,14 +29,16 @@ struct PhongShader : IShader {
 		, rContext_{ rc }
 	{
 		// w = 0. bc its a vector
-		vec4 light_4d{ rContext_.ModelView * vec4{sun.x, sun.y, sun.z, 0.} };
+		vec4 light_4d{ rContext_.ModelView * sun };
 		world_light_ = normalize(light_4d);
 	}
 
 	vec4 vertex(int iface, int ivert) {
-		vec3 v = model_.vert(iface, ivert); // cur vertex in obj coord
+		vec4 v = model_.vert(iface, ivert); // cur vertex in obj coord
 		vec4 global_pos = rContext_.ModelView * vec4{ v.x, v.y, v.z, 1. };
 		tri_[ivert] = global_pos.xyz();
+
+		normals_[ivert] = (rContext_.ModelView.inverse().transpose() * model_.normal(iface, ivert)).xyz();
 
 		vec2 uvCoord{ model_.uv_coords(iface, ivert) };
 		varying_uv_[ivert] = uvCoord;
@@ -44,17 +47,29 @@ struct PhongShader : IShader {
 	}
 
 	std::pair<bool, TGAColor> fragment(const vec3& bary_coords) const override {
-		// NORMAL MAP TEXTURE
 		matrix<3, 2> ABC{ varying_uv_ };
 		vec2 uv_coords{ bary_coords * ABC };
-		vec4 weighted_normal{ normalize(rContext_.ModelView.inverse().transpose() * model_.normal_tex(uv_coords)) };
 
+		matrix<3, 2> tri_edges{ matrix<2, 3>{ tri_[1] - tri_[0], tri_[2] - tri_[0] }.transpose() };
+		matrix<2, 2> uv_edges{
+			matrix<2, 2>{varying_uv_[1] - varying_uv_[0], varying_uv_[2] - varying_uv_[0]}.transpose()
+		};
+
+		matrix<3, 2> tan_bitan{ tri_edges * uv_edges.inverse() };
+		vec3 interpolated_normal{ matrix<3, 3>{normals_} *bary_coords };
+		matrix<3, 3> tang_space_basis{};
+		for (int i : {0, 1, 2}) {
+			tang_space_basis[i] = { tan_bitan[i][0], tan_bitan[i][1], interpolated_normal[i] };
+		}
+
+		// NORMAL MAP TEXTURE
+		vec4 weighted_normal{ normalize(rContext_.ModelView.inverse().transpose() * model_.normal_tex(uv_coords)) };
 		// DIFF MAP
 		TGAColor diffMap{ model_.diff(uv_coords) };
-
 		// SPEC SHADER
 		double specIntensity{ model_.spec(uv_coords) };
 
+		// LIGHTING
 		// AMBIENT
 		constexpr double ambient{ 0.3 };
 
@@ -74,7 +89,7 @@ struct PhongShader : IShader {
 
 		TGAColor final_FragColor{ diffMap };
 		for (int i : {0, 1, 2}) {
-			final_FragColor[i] *= std::min(1., ambient + 0.6 * diffuse + 1.1 * specular);
+			final_FragColor[i] *= std::min(1., ambient + 0.7 * diffuse + 0.4 * specular);
 		}
 
 		return { false, final_FragColor };
@@ -85,7 +100,7 @@ int main(int argc, char** argv) {
 	using namespace Canvas;
 
 
-	Model model("african_head");
+	Model model("diablo3_pose");
 
 	RenderContext rContext{};
 	rContext.lookat(eye, center, up);

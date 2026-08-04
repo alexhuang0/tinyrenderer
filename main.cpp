@@ -46,11 +46,14 @@ struct PhongShader : IShader {
 	std::pair<bool, TGAColor> fragment(const vec3& bary_coords) const override {
 		// NORMAL MAP TEXTURE
 		matrix<3, 2> ABC{ varying_uv_ };
-		vec2 uv_normal_coords{ bary_coords * ABC };
-		vec4 weighted_normal{ normalize(rContext_.ModelView.inverse().transpose() * model_.normal_tex(uv_normal_coords)) };
+		vec2 uv_coords{ bary_coords * ABC };
+		vec4 weighted_normal{ normalize(rContext_.ModelView.inverse().transpose() * model_.normal_tex(uv_coords)) };
 
 		// DIFF MAP
-		TGAColor final_FragColor{ model_.diff(uv_normal_coords) };
+		TGAColor diffMap{ model_.diff(uv_coords) };
+
+		// SPEC SHADER
+		double specIntensity{ model_.spec(uv_coords) };
 
 		// AMBIENT
 		constexpr double ambient{ 0.3 };
@@ -59,7 +62,6 @@ struct PhongShader : IShader {
 		double diffuse{ (std::max(0., dot(weighted_normal, world_light_))) };
 
 		// SPECULAR
-		constexpr int shininess{ 35 };
 		const vec4 reflected_ray{
 			normalize(
 			2. * dot(weighted_normal, world_light_) * weighted_normal - world_light_
@@ -67,11 +69,12 @@ struct PhongShader : IShader {
 		};
 		double specular{ std::pow(
 			std::max(0., reflected_ray.z), // obj points to simply +z axis (in eye coords) since camera @ (0, 0). r.z since (0,0,1) (viewer dir)*(r.x, r.y, r.z) = r.z
-			shininess
+			specIntensity
 		) };
 
+		TGAColor final_FragColor{ diffMap };
 		for (int i : {0, 1, 2}) {
-			final_FragColor[i] *= std::min(1., ambient + 0.4 * diffuse + 0.9 * specular);
+			final_FragColor[i] *= std::min(1., ambient + 0.6 * diffuse + 1.1 * specular);
 		}
 
 		return { false, final_FragColor };

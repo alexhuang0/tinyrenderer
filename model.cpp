@@ -34,8 +34,11 @@ vec4 Model::normal_tex(const vec2& uv) const {
 	;
 }
 
-TGAColor Model::diff(const vec2& diff) const {
-	return diffmap.get(diff.x * diffmap.width(), diff.y * diffmap.height());
+TGAColor Model::diff(const vec2& uv) const {
+	return diffmap.get(uv.x * diffmap.width(), uv.y * diffmap.height());
+}
+double Model::spec(const vec2& uv) const {
+	return specmap.get(uv.x * specmap.width(), uv.y * specmap.height())[0];
 }
 
 Model::Model(const std::string& modelName) {
@@ -115,6 +118,7 @@ Model::Model(const std::string& modelName) {
 
 	load_texture("nm", normalmap);
 	load_texture("diffuse", diffmap);
+	load_texture("spec", specmap);
 
 	std::cout << "read " << nverts() << " vertices, "
 		<< nnorms() << " vertex normals, "

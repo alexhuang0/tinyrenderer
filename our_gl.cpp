@@ -28,7 +28,6 @@ void RenderContext::init_perspective(double f) {
 	};
 }
 
-// transform from world space to view/camera space
 void RenderContext::lookat(const vec<3>& eye, const vec<3>& center, const vec<3>& up) {
 	vec3 n{ normalize(eye - center) };
 	vec3 l{ normalize(cross3d(up, n)) };

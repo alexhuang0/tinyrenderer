@@ -14,7 +14,7 @@ struct IShader {
 using Triangle = std::array<vec4, 3>;
 
 struct RenderContext {
-	matrix<4, 4> ModelView{};
+	matrix<4, 4> ModelView{}; // transform from world space to view/camera space
 	matrix<4, 4> Perspective{};
 	matrix<4, 4> Viewport{};
 	matrix<4, 4> ComposeTransforms{};

@@ -65,3 +65,20 @@ std::pair<bool, TGAColor> PhongShader::fragment(const vec3& bary_coords) const {
 
 	return { false, final_FragColor };
 }
+
+
+
+vec4 ShadowShader::vertex(int iface, int ivert) {
+	vec4 v = model_.vert(iface, ivert); // cur vertex in obj coord
+	vec4 global_pos = rContext_.ModelView * rContext_.ModelView.inverse() * v; // light's POV
+
+	tri_[ivert] = global_pos;
+
+	return global_pos;
+}
+
+std::pair<bool, TGAColor> ShadowShader::fragment(const vec3& bary_coords) const {
+	TGAColor final_FragColor{};
+
+	return { false, final_FragColor };
+}

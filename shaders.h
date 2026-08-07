@@ -29,20 +29,12 @@ struct PhongShader : IShader {
 
 struct ShadowShader : IShader {
 	const Model& model_;
-	const RenderContext& rContext_;
 	const RenderContext& shContext_;
 
-	vec4 world_light_; // sun in eye space
-	std::array<vec4, 3> tri_{}; // triangle in eye space
-
-	ShadowShader(const Model& m, const RenderContext& rc, const RenderContext& sh, const vec4& sun)
+	ShadowShader(const Model& m, const RenderContext& sh)
 		: model_{ m }
-		, rContext_{ rc }
 		, shContext_{ sh }
 	{
-		// w = 0. bc its a vector
-		vec4 light_4d{ rContext_.ModelView * sun };
-		world_light_ = normalize(light_4d);
 	}
 
 	vec4 vertex(int iface, int ivert);

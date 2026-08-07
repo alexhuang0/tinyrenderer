@@ -80,7 +80,9 @@ Model::Model(const std::string& modelName) {
 		else if (curLine.compare(0, 2, "vt") == 0) {
 			double x{}, y{}, tmp{};
 
-			if (std::sscanf(curLine.c_str(), "vt %lf %lf %lf", &x, &y, &tmp) == 3) {
+			int parsed{ std::sscanf(curLine.c_str(), "vt %lf %lf %lf", &x, &y, &tmp) };
+
+			if (parsed == 2 || parsed == 3) {
 				Model::tex.push_back({ x, 1 - y });
 			}
 		}

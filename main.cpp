@@ -19,7 +19,9 @@
 int main(int argc, char** argv) {
 	using namespace Canvas;
 
-	Model model("diablo3_pose");
+	std::vector<Model> scene_models;
+	scene_models.emplace_back("diablo3_pose");
+	scene_models.emplace_back("floor");
 
 	RenderContext rContext{};
 	rContext.lookat(eye, center, up);
@@ -33,33 +35,37 @@ int main(int argc, char** argv) {
 	shContext.init_viewport(width / 16, height / 16, width * 7 / 8, height * 7 / 8);
 	shContext.init_zbuffer();
 
-	
-
 
 	TGAImage shadowbuffer(width, height, TGAImage::GRAYSCALE);
-	ShadowShader shadow(model, rContext, shContext, world_light);
-	for (int f{ 0 }; f < model.nfaces(); ++f) {
-		Triangle triang_vertices{
-			shadow.vertex(f, 0),
-			shadow.vertex(f, 1),
-			shadow.vertex(f, 2),
-		};
+	for (const auto& model : scene_models) {
+		ShadowShader shadow(model, shContext);
+		for (int f{ 0 }; f < model.nfaces(); ++f) {
+			Triangle triang_vertices{
+				shadow.vertex(f, 0),
+				shadow.vertex(f, 1),
+				shadow.vertex(f, 2),
+			};
 
-		shContext.rasterize(triang_vertices, shadow, shadowbuffer);
+			shContext.rasterize(triang_vertices, shadow, shadowbuffer);
+		}
 	}
+
 
 	TGAImage framebuffer(width, height, TGAImage::RGB);
-	PhongShader phong(model, rContext, shContext, world_light);
-	for (int f{ 0 }; f < model.nfaces(); ++f) {
-		Triangle triang_vertices{
-			phong.vertex(f, 0),
-			phong.vertex(f, 1),
-			phong.vertex(f, 2)
-		};
+	for (const auto& model : scene_models) {
+		PhongShader phong(model, rContext, shContext, world_light);
+		for (int f{ 0 }; f < model.nfaces(); ++f) {
+			Triangle triang_vertices{
+				phong.vertex(f, 0),
+				phong.vertex(f, 1),
+				phong.vertex(f, 2)
+			};
 
-		rContext.rasterize(triang_vertices, phong, framebuffer);
+			rContext.rasterize(triang_vertices, phong, framebuffer);
+		}
 	}
 
-	//framebuffer.write_tga_file("framebuffer.tga");
+
+	framebuffer.write_tga_file("framebuffer.tga");
 	return 0;
 }

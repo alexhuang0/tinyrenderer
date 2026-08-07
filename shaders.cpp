@@ -15,11 +15,31 @@ vec4 PhongShader::vertex(int iface, int ivert) {
 }
 
 std::pair<bool, TGAColor> PhongShader::fragment(const vec3& bary_coords) const {
-	matrix<3, 4> tri{ tri_ };
-	vec3 coords{ tri * vec4{bary_coords.x, bary_coords.y, bary_coords.z, 1. } };
-	if (shContext_.zbuffer[coords.y * Canvas::width + coords.x] > coords.z) {
-		return { true, {0, 0, 0, 0} };
+	// frag pos in eye space
+	vec4 coords{ tri_[0] * bary_coords.x + tri_[1] * bary_coords.y + tri_[2] * bary_coords.z };
+
+	// convert from eye space -> object/model space -> light space -> light Clip space (perspective, but not inside [-1, 1] cube)
+	vec4 coords_light_pov{ shContext_.Perspective * shContext_.ModelView * rContext_.ModelView.inverse() * coords };
+
+	// convert to [-1, 1] cube
+	vec4 ndc_light{ coords_light_pov / coords_light_pov.w };
+
+	// scale to fit screen
+	vec4 screen{ shContext_.Viewport * ndc_light };
+
+	int shX{ static_cast<int>(screen.x) }, shY{ static_cast<int>(screen.y) };
+	double shZ{ screen.z };
+
+	bool in_shadow{ false };
+	double shadow_bias{ 0.03 };
+
+	// if inside shadow map bounds
+	if (shX >= 0 && shX < Canvas::width && shY >= 0 && shY < Canvas::height) {
+		if (shContext_.zbuffer[shY * Canvas::width + shX] > shZ + shadow_bias) {
+			in_shadow = true;
+		}
 	}
+
 
 	matrix<3, 2> ABC{ varying_uv_ };
 	vec2 uv_coords{ bary_coords * ABC };
@@ -65,8 +85,13 @@ std::pair<bool, TGAColor> PhongShader::fragment(const vec3& bary_coords) const {
 	) };
 
 	TGAColor final_FragColor{ diffMap };
+	double light_intensity{ ambient };
+
+	if (!in_shadow) {
+		light_intensity += 1 * diffuse + 3 * specular;
+	}
 	for (int i : {0, 1, 2}) {
-		final_FragColor[i] *= std::min(1., (ambient + 1 * diffuse + 3 * specular));
+		final_FragColor[i] *= std::min(1., light_intensity);
 	}
 
 	return { false, final_FragColor };
@@ -76,11 +101,9 @@ std::pair<bool, TGAColor> PhongShader::fragment(const vec3& bary_coords) const {
 
 vec4 ShadowShader::vertex(int iface, int ivert) {
 	vec4 v = model_.vert(iface, ivert); // cur vertex in obj coord
-	vec4 global_pos = rContext_.ModelView * rContext_.ModelView.inverse() * v; // light's POV
+	vec4 global_pos = shContext_.ModelView * v; // light's POV
 
-	tri_[ivert] = global_pos;
-
-	return global_pos;
+	return shContext_.Perspective * global_pos;
 }
 
 std::pair<bool, TGAColor> ShadowShader::fragment(const vec3& bary_coords) const {

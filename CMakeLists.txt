@@ -23,7 +23,7 @@ find_package(OpenMP COMPONENTS CXX)
 
 set(SOURCES main.cpp tgaimage.cpp)
 
-add_executable(${PROJECT_NAME} ${SOURCES} "model.h" "geometry/geometry.h" "model.cpp" "canvas.h"   "geometry/vector.h" "geometry/matrix.h"   "geometry/vector.cpp" "our_gl.cpp"  "our_gl.h")
+add_executable(${PROJECT_NAME} ${SOURCES} "model.h" "geometry/geometry.h" "model.cpp" "canvas.h"   "geometry/vector.h" "geometry/matrix.h"   "geometry/vector.cpp" "our_gl.cpp"  "our_gl.h"  "shaders.h" "shaders.cpp")
 target_link_libraries(${PROJECT_NAME} PRIVATE $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>)
 
 file(GENERATE OUTPUT .gitignore CONTENT "*")

@@ -15,6 +15,12 @@ vec4 PhongShader::vertex(int iface, int ivert) {
 }
 
 std::pair<bool, TGAColor> PhongShader::fragment(const vec3& bary_coords) const {
+	matrix<3, 4> tri{ tri_ };
+	vec3 coords{ tri * vec4{bary_coords.x, bary_coords.y, bary_coords.z, 1. } };
+	if (shContext_.zbuffer[coords.y * Canvas::width + coords.x] > coords.z) {
+		return { true, {0, 0, 0, 0} };
+	}
+
 	matrix<3, 2> ABC{ varying_uv_ };
 	vec2 uv_coords{ bary_coords * ABC };
 

@@ -8,7 +8,7 @@ struct PhongShader : IShader {
 	const RenderContext& shContext_;
 
 	vec4 world_light_; // sun in eye space
-	vec4 tri_[3]{}; // triangle in eye space
+	std::array<vec4, 3> tri_{}; // triangle in eye space
 	std::array<vec4, 3> varying_nrms_{}; // tri vertices' normals in eye space
 	std::array<vec2, 3> varying_uv_{}; // tri uv coordinates, written by vertex shader, read by fragment shader
 

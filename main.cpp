@@ -77,9 +77,11 @@ int main(int argc, char** argv) {
 				rContext.rasterize(triang_vertices, phong, tmp_framebuffer);
 			}
 		}
-
-		for (int i{ 0 }; i < total_occlusion_buffer.size(); ++i) {
-			total_occlusion_buffer[i] += rContext.zbuffer[i];
+#pragma omp parallel for
+		for (std::size_t x{ 0 }; x < width; ++x) {
+			for (std::size_t y{ 0 }; y < height; ++y) {
+				total_occlusion_buffer[x + y * width] += tmp_framebuffer.get(x, y)[0];
+			}
 		}
 	}
 

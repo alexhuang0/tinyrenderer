@@ -18,7 +18,8 @@ std::pair<bool, TGAColor> PhongShader::fragment(const vec3& bary_coords) const {
 	// frag pos in eye space
 	vec4 coords{ tri_[0] * bary_coords.x + tri_[1] * bary_coords.y + tri_[2] * bary_coords.z };
 
-	// convert from eye space -> object/model space -> light space -> light Clip space (perspective, but not inside [-1, 1] cube)
+	// convert light shader from eye space -> object/model space 
+	// -> light space -> light Clip space (perspective, but not inside [-1, 1] cube)
 	vec4 coords_light_pov{ shContext_.Perspective * shContext_.ModelView * rContext_.ModelView.inverse() * coords };
 
 	// convert to [-1, 1] cube

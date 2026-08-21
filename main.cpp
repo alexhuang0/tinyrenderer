@@ -24,6 +24,7 @@ int main(int argc, char** argv) {
 	scene_models.emplace_back("diablo3_pose");
 	scene_models.emplace_back("floor");
 
+
 	// main camera
 	RenderContext rContext{};
 	rContext.lookat(eye, center, up);
@@ -31,6 +32,22 @@ int main(int argc, char** argv) {
 	rContext.init_viewport(width / 16, height / 16, width * 7 / 8, height * 7 / 8);
 	TGAImage finalbuffer(width, height, TGAImage::RGB);
 	std::vector<double> total_occlusion_buffer(width * height); // shadow buff from CAMERA POV
+
+	// one render to freeze zbuffer from camera pov (zbuffer will never change for that)
+	for (const auto& model : scene_models) {
+		ShadowShader firstRenderShader(model, rContext);
+		for (int f{ 0 }; f < model.nfaces(); ++f) {
+			Triangle triang_vertices{
+				firstRenderShader.vertex(f, 0),
+				firstRenderShader.vertex(f, 1),
+				firstRenderShader.vertex(f, 2)
+			};
+
+			rContext.rasterize(triang_vertices, firstRenderShader, finalbuffer);
+		}
+	}
+
+
 
 	RenderContext shContext{}; // holds viewing context from Light POV and light's zbuffer / shadow buffer
 	shContext.init_viewport(width / 16, height / 16, width * 7 / 8, height * 7 / 8);

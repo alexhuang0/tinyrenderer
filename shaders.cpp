@@ -32,11 +32,14 @@ std::pair<bool, TGAColor> PhongShader::fragment(const vec3& bary_coords) const {
 	double shZ{ screen.z };
 
 	bool in_shadow{ false };
-	double shadow_bias{ 0.03 };
+	constexpr double shadow_bias{ 0.03 };
 
 	// if inside shadow map bounds
 	if (shX >= 0 && shX < Canvas::width && shY >= 0 && shY < Canvas::height) {
-		if (shContext_.zbuffer[shY * Canvas::width + shX] > shZ + shadow_bias) {
+		// shContext_.zbuffer holds what the light saw
+		// shX, Y, Z are the values from the fragment (object space) -> light space
+		// if the fragment happens to be BEHIND what the light saw, it is in_shadow
+		if (shZ + shadow_bias < shContext_.zbuffer[shX + shY * Canvas::width]) {
 			in_shadow = true;
 		}
 	}

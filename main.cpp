@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <random>
+#include <numbers>
 
 #include "tgaimage.h"
 
@@ -66,15 +67,27 @@ int main(int argc, char** argv) {
 
 	// randomizer stuff
 	std::mt19937 mt{ 10 };
-	std::uniform_real_distribution<double> getX{ 0., 1. };
+	/*
+	dA = (r * sintheta * dtheta) * dphi		-> phi is rotation around horizontal, theta polar angle
+	but y = r * costheta
+	dy = -sintheta * dtheta
+	ignoring - sign
+	dA = dy * dphi
+	*/
+	constexpr double PI{ std::numbers::pi };
 	std::uniform_real_distribution<double> getY{ 0.5, 1. };
+	std::uniform_real_distribution<double> getPhi{ 0, 2 * PI };
 	vec4 world_light{ 0, 0, 0, 0 };
 
-	constexpr int iterations{ 400 };
+	constexpr int iterations{ 1000 };
 	for (int c{ 0 }; c < iterations; ++c) {
-		world_light.x = getX(mt);
+		const double phi{ getPhi(mt) };
 		world_light.y = getY(mt);
-		world_light.z = getX(mt);
+
+		const double r{ std::sqrt(1 - world_light.y * world_light.y) };
+		world_light.x = std::cos(phi) * r;
+		world_light.z = std::sin(phi) * r;
+
 		shContext.lookat(world_light.xyz(), center, up);
 		shContext.init_perspective(norm(world_light.xyz() - center));
 		shContext.init_zbuffer();

@@ -24,7 +24,7 @@ struct RenderContext {
 	void init_viewport(int x, int y, int w, int h);
 	void init_perspective(double f);
 	void composeTransforms();
-	void init_zbuffer();
+	void init_zbuffer(int width, int height);
 
 	void rasterize(const Triangle& clip, const IShader& shader, TGAImage& framebuffer);
 };

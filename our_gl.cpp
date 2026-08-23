@@ -1,8 +1,8 @@
 #include "our_gl.h"
 #include "canvas.h"
 
-void RenderContext::init_zbuffer() {
-	zbuffer = std::vector<double>(Canvas::width * Canvas::height, -std::numeric_limits<double>::max());
+void RenderContext::init_zbuffer(int width, int height) {
+	zbuffer = std::vector<double>(width * height, -std::numeric_limits<double>::max());
 }
 
 // homogeneous coordinates stuff

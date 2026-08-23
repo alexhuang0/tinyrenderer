@@ -18,31 +18,17 @@ std::pair<bool, TGAColor> PhongShader::fragment(const vec3& bary_coords) const {
 	// frag pos in eye space
 	vec4 coords{ tri_[0] * bary_coords.x + tri_[1] * bary_coords.y + tri_[2] * bary_coords.z };
 
-	// convert light shader from eye space -> object/model space 
-	// -> light space -> light Clip space (perspective, but not inside [-1, 1] cube)
-	vec4 coords_light_pov{ shContext_.Perspective * shContext_.ModelView * rContext_.ModelView.inverse() * coords };
+	// shContext_.zbuffer is already mapped to camera space (total_occlusion_buffer from main.cpp)
+	// so no need to convert coords -> light view space
+	// only convert coords from eye space (no persp, no viewport, only ModelView), to persp + viewport applied
+
+	vec4 coords_clip{ rContext_.Perspective * coords };
 
 	// convert to [-1, 1] cube
-	vec4 ndc_light{ coords_light_pov / coords_light_pov.w };
+	vec4 ndc{ coords_clip / coords_clip.w };
 
 	// scale to fit screen
-	vec4 screen{ shContext_.Viewport * ndc_light };
-
-	int shX{ static_cast<int>(screen.x) }, shY{ static_cast<int>(screen.y) };
-	double shZ{ screen.z };
-
-	bool in_shadow{ false };
-	constexpr double shadow_bias{ 0.03 };
-
-	// if inside shadow map bounds
-	if (shX >= 0 && shX < Canvas::width && shY >= 0 && shY < Canvas::height) {
-		// shContext_.zbuffer holds what the light saw
-		// shX, Y, Z are the values from the fragment (object space) -> light space
-		// if the fragment happens to be BEHIND what the light saw, it is in_shadow
-		if (shZ + shadow_bias < shContext_.zbuffer[shX + shY * Canvas::width]) {
-			in_shadow = true;
-		}
-	}
+	vec4 screen{ rContext_.Viewport * ndc };
 
 
 	matrix<3, 2> ABC{ varying_uv_ };
@@ -68,8 +54,8 @@ std::pair<bool, TGAColor> PhongShader::fragment(const vec3& bary_coords) const {
 	double specIntensity{ model_.spec(uv_coords) };
 
 	// LIGHTING
-	// AMBIENT
-	constexpr double ambient{ 0.4 };
+	// AMBIENT, taken from total_occlusion_buffer
+	const double ambient{ shContext_.zbuffer[screen.x + screen.y * Canvas::width] };
 
 	// DIFFUSE
 	double diffuse{ (std::max(0., dot(normal_tan_basis, world_light_))) };
@@ -89,11 +75,8 @@ std::pair<bool, TGAColor> PhongShader::fragment(const vec3& bary_coords) const {
 	) };
 
 	TGAColor final_FragColor{ diffMap };
-	double light_intensity{ ambient };
+	double light_intensity{ ambient + (1 * diffuse) + (3 * specular) };
 
-	if (!in_shadow) {
-		light_intensity += 1 * diffuse + 3 * specular;
-	}
 	for (int i : {0, 1, 2}) {
 		final_FragColor[i] *= std::min(1., light_intensity);
 	}

@@ -1,4 +1,5 @@
 ﻿#include <array>
+#include <chrono>
 #include <cmath>
 #include <vector>
 
@@ -81,8 +82,10 @@ int main(int argc, char** argv) {
 	std::uniform_real_distribution<double> getPhi{ 0, 2 * PI };
 	vec4 world_light{ 0, 0, 0, 0 };
 
-	constexpr int iterations{ 400 };
+	constexpr int iterations{ 1000 };
+	const auto t_start{ std::chrono::steady_clock::now() };
 	for (int c{ 0 }; c < iterations; ++c) {
+		const auto t_iter{ std::chrono::steady_clock::now() };
 		const double phi{ getPhi(mt) };
 		world_light.y = getY(mt);
 
@@ -112,8 +115,8 @@ int main(int argc, char** argv) {
 		const matrix<4, 4> model_to_light{ shContext.Viewport * shContext.Perspective * shContext.ModelView * camera_to_model };
 
 #pragma omp parallel for
-		for (std::size_t x{ 0 }; x < width; ++x) {
-			for (std::size_t y{ 0 }; y < height; ++y) {
+		for (int x{ 0 }; x < width; ++x) {
+			for (int y{ 0 }; y < height; ++y) {
 				double cam_z{ rContext.zbuffer[x + y * width] };
 				if (cam_z < -1e5) {
 					// It's empty sky/background: nothing occludes / blocks it
@@ -147,6 +150,15 @@ int main(int argc, char** argv) {
 				}
 			}
 		}
+
+		using ms = std::chrono::duration<double, std::milli>;
+		const double iter_ms{ ms(std::chrono::steady_clock::now() - t_iter).count() };
+		const double total_s{ std::chrono::duration<double>(std::chrono::steady_clock::now() - t_start).count() };
+		std::cout << "pass " << (c + 1) << '/' << iterations
+			<< "  this pass: " << iter_ms << " ms"
+			<< "  elapsed: " << total_s << " s"
+			<< "  projected total: " << (total_s / (c + 1) * iterations) << " s\n"
+			<< std::flush;
 	}
 
 	// average each points shadow "intensity" from all shadow maps
@@ -156,6 +168,7 @@ int main(int argc, char** argv) {
 
 
 	// final render pass, with averaged shadow intensity
+	world_light = vec4{ 1., 1., 1., 0. };
 	rContext.init_zbuffer(width, height);
 	shContext.zbuffer = total_occlusion_buffer; // dont care about light coords, shContext holds one important field: zbuffer
 	for (const auto& model : scene_models) {

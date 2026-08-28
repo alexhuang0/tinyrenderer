@@ -55,7 +55,7 @@ std::pair<bool, TGAColor> PhongShader::fragment(const vec3& bary_coords) const {
 
 	// LIGHTING
 	// AMBIENT, taken from total_occlusion_buffer
-	const double ambient{ shContext_.zbuffer[screen.x + screen.y * Canvas::width] };
+	const double ambient{ shContext_.zbuffer[static_cast<int>(screen.x) + static_cast<int>(screen.y) * Canvas::width] };
 
 	// DIFFUSE
 	double diffuse{ (std::max(0., dot(normal_tan_basis, world_light_))) };

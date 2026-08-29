@@ -168,21 +168,42 @@ int main(int argc, char** argv) {
 
 
 	// final render pass, with averaged shadow intensity
-	world_light = vec4{ 1., 1., 1., 0. };
-	rContext.init_zbuffer(width, height);
-	shContext.zbuffer = total_occlusion_buffer; // dont care about light coords, shContext holds one important field: zbuffer
-	for (const auto& model : scene_models) {
-		PhongShader phong(model, rContext, shContext, world_light);
-		for (int f{ 0 }; f < model.nfaces(); ++f) {
-			Triangle triang_vertices{
-				phong.vertex(f, 0),
-				phong.vertex(f, 1),
-				phong.vertex(f, 2)
-			};
+	//world_light = vec4{ 1., 1., 1., 0. };
+	//rContext.init_zbuffer(width, height);
+	//shContext.zbuffer = total_occlusion_buffer; // dont care about light coords, shContext holds one important field: zbuffer
+	//for (const auto& model : scene_models) {
+	//	PhongShader phong(model, rContext, shContext, world_light);
+	//	for (int f{ 0 }; f < model.nfaces(); ++f) {
+	//		Triangle triang_vertices{
+	//			phong.vertex(f, 0),
+	//			phong.vertex(f, 1),
+	//			phong.vertex(f, 2)
+	//		};
 
-			rContext.rasterize(triang_vertices, phong, finalbuffer);
+	//		rContext.rasterize(triang_vertices, phong, finalbuffer);
+	//	}
+	//}
+
+	// clay render with AO
+#pragma omp parallel for collapse(2)
+	for (int x = 0; x < width; ++x) {
+		for (int y = 0; y < height; ++y) {
+			double occlusion = total_occlusion_buffer[x + y * width];
+
+			// Optional: The author's smoothstep boosts contrast so darks are darker
+			// double m = std::clamp((occlusion - (-1.0)) / (1.0 - (-1.0)), 0.0, 1.0);
+			// occlusion = m * m * (3 - 2 * m); 
+
+			TGAColor c = finalbuffer.get(x, y);
+			finalbuffer.set(x, y, TGAColor{
+			static_cast<std::uint8_t>(std::clamp(c[0] * occlusion, 0.0, 255.0)),
+			static_cast<std::uint8_t>(std::clamp(c[1] * occlusion, 0.0, 255.0)),
+			static_cast<std::uint8_t>(std::clamp(c[2] * occlusion, 0.0, 255.0)),
+			c[3]
+				});
 		}
 	}
+	finalbuffer.write_tga_file("framebuffer.tga");
 
 	finalbuffer.write_tga_file("framebuffer.tga");
 	return 0;

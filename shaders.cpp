@@ -94,7 +94,7 @@ vec4 ShadowShader::vertex(int iface, int ivert) {
 }
 
 std::pair<bool, TGAColor> ShadowShader::fragment(const vec3& bary_coords) const {
-	TGAColor final_FragColor{};
+	TGAColor final_FragColor{ 255, 255, 255, 255 };
 
 	return { false, final_FragColor };
 }

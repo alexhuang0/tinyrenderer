@@ -107,7 +107,67 @@ vec4 ShadowShader::vertex(int iface, int ivert) {
 }
 
 std::pair<bool, TGAColor> ShadowShader::fragment(const vec3& bary_coords) const {
-	TGAColor final_FragColor{};
+	TGAColor final_FragColor{ 255, 255, 255, 255 };
 
 	return { false, final_FragColor };
 }
+
+
+//=== SSAO
+vec4 SSAOShader::vertex(int iface, int ivert) {
+	vec4 v = model_.vert(iface, ivert); // cur vertex in obj coord
+	vec4 global_pos = rContext_.ModelView * v;
+
+	tri_[ivert] = global_pos;
+
+	return rContext_.Perspective * global_pos;
+}
+
+//std::pair<bool, TGAColor> SSAOShader::fragment(const vec3& bary_coords) const {
+//	// frag pos in eye space
+//	vec4 coords{ tri_[0] * bary_coords.x + tri_[1] * bary_coords.y + tri_[2] * bary_coords.z };
+//
+//
+//	//const double phi{ getY(mt) };
+//
+//
+//
+//	// convert from eye space -> object/model space -> light space -> light Clip space (perspective, but not inside [-1, 1] cube)
+//	vec4 coords_light_pov{ shContext_.Perspective * shContext_.ModelView * rContext_.ModelView.inverse() * coords };
+//
+//	// convert to [-1, 1] cube
+//	vec4 ndc_light{ coords_light_pov / coords_light_pov.w };
+//
+//	// scale to fit screen
+//	vec4 screen{ shContext_.Viewport * ndc_light };
+//
+//
+//
+//	matrix<3, 2> ABC{ varying_uv_ };
+//	vec2 uv_coords{ bary_coords * ABC };
+//
+//	matrix<2, 4 > tri_edges{ tri_[1] - tri_[0], tri_[2] - tri_[0] };
+//	matrix<2, 2> uv_edges{ varying_uv_[1] - varying_uv_[0], varying_uv_[2] - varying_uv_[0] };
+//
+//	matrix<2, 4> tan_bitan{ uv_edges.inverse() * tri_edges };
+//
+//
+//	vec4 weighted_normal{ normalize(bary_coords * matrix<3, 4>{varying_nrms_}) };
+//	// generate hemisphere around normal
+//	// coords are in eye space (bc multiplying w/ bary_coords?)
+//
+//
+//
+//
+//	TGAColor final_FragColor{ diffMap };
+//	double light_intensity{ ambient };
+//
+//	if (!in_shadow) {
+//		light_intensity += 1 * diffuse + 3 * specular;
+//	}
+//	for (int i : {0, 1, 2}) {
+//		final_FragColor[i] *= std::min(1., light_intensity);
+//	}
+//
+//	return { false, final_FragColor };
+//}

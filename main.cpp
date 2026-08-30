@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
 	std::uniform_real_distribution<double> getDist{ -radius, radius };
 	constexpr int samples{ 128 };
 
-	const matrix<4, 4> eye_to_screen{ rContext.Perspective * rContext.Viewport };
+	const matrix<4, 4> eye_to_screen{ rContext.Viewport * rContext.Perspective };
 	const matrix<4, 4> screen_to_eye{ (eye_to_screen).inverse() };
 	for (int x{ 0 }; x < width; ++x) {
 		for (int y{ 0 }; y < height; ++y) {
